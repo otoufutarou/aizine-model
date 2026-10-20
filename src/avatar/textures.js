@@ -45,52 +45,59 @@ function drawEye(ctx, cx, cy, side, expr) {
     ctx.lineTo(44, -6);
     ctx.stroke();
   } else {
-    const w = 104;
+    // sleepy half-lidded eye: wide almond, heavy flat upper lid, small iris
+    const w = 150;
     const h = 150;
     const eye = () => {
       ctx.beginPath();
-      ctx.moveTo(-w / 2, -h * 0.18);
-      ctx.bezierCurveTo(-w / 2, -h * 0.5, w / 2, -h * 0.56, w / 2, -h * 0.2);
-      ctx.bezierCurveTo(w / 2 + 2, h * 0.3, w * 0.25, h * 0.52, 0, h * 0.52);
-      ctx.bezierCurveTo(-w * 0.3, h * 0.52, -w / 2, h * 0.3, -w / 2, -h * 0.18);
+      ctx.moveTo(-w / 2, 0);
+      ctx.bezierCurveTo(-w * 0.32, -h * 0.5, w * 0.32, -h * 0.5, w / 2, 0);
+      ctx.bezierCurveTo(w * 0.3, h * 0.5, -w * 0.3, h * 0.5, -w / 2, 0);
       ctx.closePath();
     };
     ctx.save();
     eye();
     ctx.clip();
-    ctx.fillStyle = '#1c1210';
+    ctx.fillStyle = '#fffaf4';
     ctx.fillRect(-w, -h, w * 2, h * 2);
-    const g = ctx.createLinearGradient(0, -h * 0.2, 0, h * 0.52);
-    g.addColorStop(0, '#3a2418');
-    g.addColorStop(0.55, '#8a5a3a');
-    g.addColorStop(1, '#d9a273');
+    const g = ctx.createLinearGradient(0, -h * 0.3, 0, h * 0.5);
+    g.addColorStop(0, '#2a1814');
+    g.addColorStop(1, '#7a5238');
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.ellipse(0, h * 0.14, w * 0.5, h * 0.4, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, h * 0.06, w * 0.3, h * 0.46, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#120a08';
     ctx.beginPath();
-    ctx.ellipse(0, h * 0.1, w * 0.24, h * 0.26, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, h * 0.06, w * 0.15, h * 0.26, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.ellipse(-side * 16, -h * 0.14, 17, 21, 0, 0, Math.PI * 2);
+    ctx.arc(-side * 9, h * 0.0, 8, 0, Math.PI * 2);
     ctx.fill();
+    // droopy upper lid covers the top of the iris
+    ctx.fillStyle = SKIN;
     ctx.beginPath();
-    ctx.ellipse(side * 18, h * 0.3, 8, 9, 0, 0, Math.PI * 2);
+    ctx.rect(-w, -h, w * 2, h * 0.5);
     ctx.fill();
-    // thick upper lash line with an outer flick
-    ctx.strokeStyle = '#120a08';
-    ctx.lineWidth = 15;
+    ctx.restore();
+    ctx.strokeStyle = '#1c1210';
+    ctx.lineWidth = 13;
     ctx.beginPath();
-    ctx.moveTo(-w / 2 - 2, -h * 0.12);
-    ctx.bezierCurveTo(-w / 2, -h * 0.5, w / 2, -h * 0.56, w / 2 + 4, -h * 0.2);
+    ctx.moveTo(-w / 2 - 4, side * 6 - 4);
+    ctx.lineTo(w / 2 + 4, -side * 6 - 4);
     ctx.stroke();
-    ctx.lineWidth = 9;
+    ctx.lineWidth = 7;
     ctx.beginPath();
-    ctx.moveTo(side * (w / 2 + 2), -h * 0.2);
-    ctx.lineTo(side * (w / 2 + 22), -h * 0.36);
+    ctx.moveTo(side * (w / 2), -side * 4 * 0 - 6);
+    ctx.lineTo(side * (w / 2 + 20), -14);
+    ctx.stroke();
+    // faint lower lid
+    ctx.strokeStyle = 'rgba(120,70,60,0.45)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(-w * 0.34, h * 0.4);
+    ctx.quadraticCurveTo(0, h * 0.58, w * 0.34, h * 0.4);
     ctx.stroke();
   }
   ctx.restore();
@@ -98,10 +105,10 @@ function drawEye(ctx, cx, cy, side, expr) {
 
 function drawBrow(ctx, W, H, side) {
   // tsuri-mayu: outer end high, inner end low
-  const inner = [0.5 + side * 0.08, 0.43];
-  const outer = [0.5 + side * 0.36, 0.365];
+  const inner = [0.5 + side * 0.1, 0.44];
+  const outer = [0.5 + side * 0.38, 0.385];
   ctx.strokeStyle = '#4a3128';
-  ctx.lineWidth = 8;
+  ctx.lineWidth = 6;
   ctx.lineCap = 'round';
   ctx.beginPath();
   ctx.moveTo(inner[0] * W, inner[1] * H);
@@ -132,8 +139,8 @@ export function faceTexture(expr = 'normal') {
     ctx.fillRect(0, 0, W, H);
     drawBrow(ctx, W, H, -1);
     drawBrow(ctx, W, H, 1);
-    drawEye(ctx, W * 0.3, H * 0.6, -1, expr);
-    drawEye(ctx, W * 0.7, H * 0.6, 1, expr);
+    drawEye(ctx, W * 0.27, H * 0.6, -1, expr);
+    drawEye(ctx, W * 0.73, H * 0.6, 1, expr);
     drawCheek(ctx, W * 0.16, H * 0.82);
     drawCheek(ctx, W * 0.68, H * 0.82);
     return toTexture(c);
