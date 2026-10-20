@@ -96,11 +96,12 @@ export function Stage({ outfitId, poseId, bgId, autoRotate }) {
     <div className="stage" style={{ background: bg.css }}>
       <Canvas
         shadows
+        flat
         dpr={[1, 2]}
-        camera={{ position: [0, 1.25, 3.6], fov: 34 }}
+        camera={{ position: [0, 0.85, 4.3], fov: 34 }}
         gl={{ alpha: true, antialias: true, preserveDrawingBuffer: false }}
       >
-        <hemisphereLight args={['#ffffff', bg.id === 'night' ? '#5a2a8a' : '#ffb3d6', 0.9]} />
+        <hemisphereLight args={['#ffffff', bg.id === 'night' ? '#5a2a8a' : '#ffb3d6', 1.3]} />
         <directionalLight position={[2.5, 4, 3]} intensity={1.8} castShadow shadow-mapSize={[1024, 1024]} />
         <directionalLight position={[-3, 2, -2]} intensity={0.8} color={bg.id === 'night' ? '#38e8ff' : '#ff9fd0'} />
         <Suspense fallback={null}>
@@ -118,7 +119,7 @@ export function Stage({ outfitId, poseId, bgId, autoRotate }) {
           <ContactShadows position={[0, 0.01, 0]} opacity={0.4} scale={4} blur={2.4} far={1.5} />
         </Suspense>
         <OrbitControls
-          target={[0, 0.95, 0]}
+          target={[0, 0.72, 0]}
           enablePan={false}
           minDistance={2.2}
           maxDistance={6}
