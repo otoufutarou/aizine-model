@@ -20,6 +20,21 @@ export const CHEST_PROFILE = [
 export const CARDIGAN_PROFILE = [
   [0.005, 0.124], [0.05, 0.142], [0.11, 0.164], [0.15, 0.166], [0.17, 0.13], [0.182, 0.074],
 ];
+// Cropped tee: starts above the waist so the midriff shows.
+export const CROP_PROFILE = [
+  [0.075, 0.133], [0.11, 0.164], [0.15, 0.166], [0.17, 0.13], [0.182, 0.074],
+];
+export const SHORT_JACKET_PROFILE = [
+  [0.03, 0.132], [0.07, 0.15], [0.125, 0.172], [0.155, 0.172], [0.172, 0.13], [0.182, 0.074],
+];
+// Track jacket: straight, waist-length, with a banded hem.
+export const TRACK_PROFILE = [
+  [-0.03, 0.14], [0.03, 0.148], [0.1, 0.168], [0.15, 0.172], [0.172, 0.13], [0.182, 0.074],
+];
+// Oversize jacket: dropped shoulders, boxy, hip length.
+export const OVERSIZE_PROFILE = [
+  [-0.16, 0.205], [-0.06, 0.21], [0.06, 0.205], [0.14, 0.2], [0.185, 0.17], [0.2, 0.1], [0.208, 0.062],
+];
 export const PELVIS_PROFILE = [
   [-0.06, 0.125], [0.0, 0.15], [0.07, 0.14], [0.125, 0.112],
 ];

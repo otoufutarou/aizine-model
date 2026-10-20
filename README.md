@@ -7,11 +7,11 @@ React + Vite + Three.js + React Three Fiber で作った 3D ファッション�
 ## 機能
 
 - 3D アバター表示（ドラッグで回転 / ピンチ・ホイールでズーム / 360° ボタンで自動回転 / FACE ボタンで顔の正面アップ）
-- 衣装 3 種：ストリート（初期：クロップドカーディガン・水色カーゴパンツ・厚底スニーカー）／ガーリー／モード
+- ViVi 風の衣装 4 系統：K-STREET（初期）／NEO GYARU／SPORTY MIX／CITY MODE + クラシック 3 種（ストリート／ガーリー／モード）。スタイリング方針は [docs/AIRA_FASHION_GUIDE.md](docs/AIRA_FASHION_GUIDE.md)
 - ポーズに連動して表情が変わります（ピース＝ウィンク、バイバイ＝にっこり）
 - ポーズ 5 種：スタンド・ピース・ハンドオンヒップ・バイバイ・ランウェイ
 - 背景 4 種：ピンクスタジオ・ネオンナイト・シルバーランウェイ・ドリームポップ
-- 日本語チャット（例：「ガーリーにして」「ピースして」「夜の背景」「おまかせ」「くるくる回って」「リセット」）
+- 日本語チャット（例：「ネオギャルにして」「スポーツMIXにして」「ピースして」「夜の背景」「おまかせ」「くるくる回って」「リセット」）
 - スマートフォン対応（縦：上にステージ／下に操作パネル、横：左右分割）
 
 ## 実行方法
@@ -42,7 +42,9 @@ npm run preview  # ビルド結果の確認
 ```
 src/
   config.js                  GLB モデルの URL 設定（null = 仮アバター）
-  data/outfits|poses|backgrounds.js   衣装・ポーズ・背景の定義
+  fashion/styleRules.js               スタイリングルール（許可タイプ・必須小物・キーワード）
+  fashion/outfits.js                  衣装設定（帽子・トップス・ボトムス・靴・小物）
+  data/poses|backgrounds.js           ポーズ・背景の定義
   chat/parser.js             日本語キーワード解析（外部通信なし）
   avatar/
     Avatar.jsx               仮アバター / GLB の切替
@@ -60,7 +62,7 @@ tests/parser.test.js
 3. GLB は次の規約に従うこと：
    - **関節ノード名**：`hips, spine, chest, neck, head, shoulderL, elbowL, shoulderR, elbowR, thighL, kneeL, thighR, kneeR`
      （キャラクターは +Z 向き、足元が y=0、`L` は +X 側）。ポーズは `src/data/poses.js` の回転値で駆動されます。
-   - **衣装ノード名**：`<衣装ID>_<任意>`（例 `street_top`, `girly_skirt`, `mode_coat`）。選択中の衣装のノードだけ表示されます。衣装 ID は `street / girly / mode`。
+   - **衣装ノード名**：`<衣装ID>_<任意>`（例 `street_top`, `girly_skirt`, `mode_coat`）。選択中の衣装のノードだけ表示されます。衣装 ID は `kstreet / gyaru / sporty / city / street / girly / mode`。
 4. 衣装やポーズの追加は `src/data/` の配列にエントリを足し、チャットのキーワードは `src/chat/parser.js` に追記します。
 
 ## 備考

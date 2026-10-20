@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { DoubleSide } from 'three';
 import { M, P } from './Prims.jsx';
 import { faceTexture, hatTexture } from './textures.js';
+import { getAccessory } from '../fashion/outfits.js';
 import { domeGeometry, hairShell, headGeometry } from './geometry.js';
 
 const SKIN = '#fbd9c4';
@@ -42,19 +43,27 @@ export function Head({ outfit, face = 'normal' }) {
         <P key={s} g="sphere" a={[1, 8, 6]} pos={[s * 0.183, 0.05, 0.02]} rot={[0, 0, s * 0.05]} scale={[0.03, 0.17, 0.055]} c={HAIR} />
       ))}
 
+      {getAccessory(outfit, 'clip') && [1, -1].map((s) => (
+        <group key={s} position={[s * 0.182, 0.1, 0.1]} rotation={[0, 0, -s * 0.3]}>
+          <P g="sphere" a={[1, 6, 5]} pos={[-0.014, 0.008, 0]} scale={[0.017, 0.017, 0.01]} c={getAccessory(outfit, 'clip').color} />
+          <P g="sphere" a={[1, 6, 5]} pos={[0.014, 0.008, 0]} scale={[0.017, 0.017, 0.01]} c={getAccessory(outfit, 'clip').color} />
+          <P g="cone" a={[0.026, 0.04, 6]} pos={[0, -0.018, 0]} rot={[0, 0, Math.PI]} scale={[1, 1, 0.45]} c={getAccessory(outfit, 'clip').color} />
+        </group>
+      ))}
+
       {/* beanie: knit dome + rolled band, checker texture, bear ears */}
       <group position={[0, -0.03, 0.015]} rotation={[-0.05, 0, 0]}>
         <mesh geometry={domeGeometry(CUT)} position={[0, DOME_CY + 0.02, -0.005]} scale={[0.25, DOME_RY, 0.235]} castShadow>
           <meshStandardMaterial map={hatTex} roughness={0.9} flatShading side={DoubleSide} />
         </mesh>
         <P g="cylinder" a={[0.19, 0.19, 0.14, 16]} pos={[0, 0.28, -0.005]} scale={[1.17, 1, 1.15]} map={hatTex} flat />
-        {[1, -1].map((s) => (
+        {hat.ears !== false && [1, -1].map((s) => (
           <group key={s} position={[s * 0.15, 0.41, -0.02]} rotation={[0, 0, -s * 0.3]}>
             <P g="icosahedron" a={[0.085, 1]} scale={[1, 1.3, 0.75]} c={hat.ear} flat />
             <P g="icosahedron" a={[0.056, 1]} pos={[0, -0.005, 0.05]} scale={[1, 1.3, 0.5]} c={hat.earIn} flat />
           </group>
         ))}
-        {outfit.extras.includes('ribbon') && (
+        {getAccessory(outfit, 'ribbon') && (
           <group position={[0.125, 0.255, 0.115]} rotation={[0, 0.7, 0.25]}>
             <P g="sphere" a={[1, 6, 5]} pos={[0.04, 0, 0]} scale={[0.04, 0.03, 0.018]} c="#ff4fa3" />
             <P g="sphere" a={[1, 6, 5]} pos={[-0.04, 0, 0]} scale={[0.04, 0.03, 0.018]} c="#ff4fa3" />

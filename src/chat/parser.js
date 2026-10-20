@@ -1,4 +1,5 @@
 import { OUTFITS, getOutfit } from '../data/outfits.js';
+import { STYLE_IDS, STYLE_RULES } from '../fashion/styleRules.js';
 import { POSES, getPose } from '../data/poses.js';
 import { BACKGROUNDS, getBackground } from '../data/backgrounds.js';
 
@@ -10,8 +11,10 @@ export function normalize(text) {
     .replace(/[\u30a1-\u30f6]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
 }
 
+// ViVi style lines come first so specific words ("ミニスカ", "スポーツ") win over the classic looks' broader ones.
 const OUTFIT_RULES = [
-  { id: 'street', words: ['ストリート', 'カーゴ', 'スニーカー', 'ヒップホップ', 'カジュアル', 'ラフ', 'スポーティ', '初期', '元の', 'もとの', '元に'], ambiguous: ['ストリート'] },
+  ...STYLE_IDS.map((id) => ({ id, words: STYLE_RULES[id].keywords })),
+  { id: 'street', words: ['ストリート', 'カーゴ', 'スニーカー', 'ヒップホップ', 'カジュアル', 'ラフ', '初期', '元の', 'もとの', '元に'], ambiguous: ['ストリート'] },
   { id: 'girly', words: ['ガーリー', 'かわいい', '可愛い', 'スカート', 'リボン', 'フリル', 'ふわふわ', 'ラブリー', 'フェミニン', 'ピンク'], ambiguous: ['ピンク'] },
   { id: 'mode', words: ['モード', 'クール', 'かっこいい', 'カッコいい', 'コート', 'シック', '大人', 'ブラック', '黒', 'シルバー'], ambiguous: ['クール', 'シルバー', 'ブラック', '黒'] },
 ];
@@ -82,7 +85,7 @@ export function parseCommand(input, rand = pick) {
     const words = rule.words.filter((w) => !(bgIntent && rule.ambiguous?.includes(w)));
     if (has(n, words)) {
       actions.push({ type: 'outfit', id: rule.id });
-      lines.push(`${getOutfit(rule.id).name}コーデに着替えたよ！ どう？`);
+      lines.push(STYLE_RULES[rule.id]?.reply ?? `${getOutfit(rule.id).name}コーデに着替えたよ！ どう？`);
       break;
     }
   }
