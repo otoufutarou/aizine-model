@@ -45,26 +45,53 @@ function drawEye(ctx, cx, cy, side, expr) {
     ctx.lineTo(44, -6);
     ctx.stroke();
   } else {
-    const w = 100;
+    const w = 104;
     const h = 150;
-    const rr = (x, y, ww, hh, r) => {
+    const eye = () => {
       ctx.beginPath();
-      ctx.roundRect(x, y, ww, hh, r);
+      ctx.moveTo(-w / 2, -h * 0.18);
+      ctx.bezierCurveTo(-w / 2, -h * 0.5, w / 2, -h * 0.56, w / 2, -h * 0.2);
+      ctx.bezierCurveTo(w / 2 + 2, h * 0.3, w * 0.25, h * 0.52, 0, h * 0.52);
+      ctx.bezierCurveTo(-w * 0.3, h * 0.52, -w / 2, h * 0.3, -w / 2, -h * 0.18);
+      ctx.closePath();
     };
-    ctx.fillStyle = '#2a1c18';
-    rr(-w / 2, -h / 2, w, h, 10);
-    ctx.fill();
     ctx.save();
-    rr(-w / 2, -h / 2, w, h, 10);
+    eye();
     ctx.clip();
-    ctx.fillStyle = '#6a6350';
-    ctx.fillRect(-w / 2, h * 0.12, w, h);
-    ctx.fillStyle = '#8a8466';
-    ctx.fillRect(-w / 2, h * 0.34, w, h);
+    ctx.fillStyle = '#1c1210';
+    ctx.fillRect(-w, -h, w * 2, h * 2);
+    const g = ctx.createLinearGradient(0, -h * 0.2, 0, h * 0.52);
+    g.addColorStop(0, '#3a2418');
+    g.addColorStop(0.55, '#8a5a3a');
+    g.addColorStop(1, '#d9a273');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(0, h * 0.14, w * 0.5, h * 0.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#120a08';
+    ctx.beginPath();
+    ctx.ellipse(0, h * 0.1, w * 0.24, h * 0.26, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(-side * 22 - 11, -h * 0.4, 24, 28);
-    ctx.fillRect(side * 16 - 6, h * 0.2, 12, 14);
+    ctx.beginPath();
+    ctx.ellipse(-side * 16, -h * 0.14, 17, 21, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(side * 18, h * 0.3, 8, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // thick upper lash line with an outer flick
+    ctx.strokeStyle = '#120a08';
+    ctx.lineWidth = 15;
+    ctx.beginPath();
+    ctx.moveTo(-w / 2 - 2, -h * 0.12);
+    ctx.bezierCurveTo(-w / 2, -h * 0.5, w / 2, -h * 0.56, w / 2 + 4, -h * 0.2);
+    ctx.stroke();
+    ctx.lineWidth = 9;
+    ctx.beginPath();
+    ctx.moveTo(side * (w / 2 + 2), -h * 0.2);
+    ctx.lineTo(side * (w / 2 + 22), -h * 0.36);
+    ctx.stroke();
   }
   ctx.restore();
 }
