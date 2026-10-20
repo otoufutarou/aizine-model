@@ -45,27 +45,26 @@ function drawEye(ctx, cx, cy, side, expr) {
     ctx.lineTo(44, -6);
     ctx.stroke();
   } else {
-    const rx = 44;
-    const ry = 84;
+    const w = 100;
+    const h = 150;
+    const rr = (x, y, ww, hh, r) => {
+      ctx.beginPath();
+      ctx.roundRect(x, y, ww, hh, r);
+    };
     ctx.fillStyle = '#2a1c18';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    rr(-w / 2, -h / 2, w, h, 10);
     ctx.fill();
-    // flat lower band, hand-drawn style
     ctx.save();
-    ctx.beginPath();
-    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    rr(-w / 2, -h / 2, w, h, 10);
     ctx.clip();
-    ctx.fillStyle = '#5a3f3a';
-    ctx.fillRect(-rx, ry * 0.35, rx * 2, ry);
+    ctx.fillStyle = '#6a6350';
+    ctx.fillRect(-w / 2, h * 0.12, w, h);
+    ctx.fillStyle = '#8a8466';
+    ctx.fillRect(-w / 2, h * 0.34, w, h);
     ctx.restore();
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.ellipse(-side * 14, -ry * 0.42, 15, 19, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(side * 14, ry * 0.45, 7, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillRect(-side * 22 - 11, -h * 0.4, 24, 28);
+    ctx.fillRect(side * 16 - 6, h * 0.2, 12, 14);
   }
   ctx.restore();
 }

@@ -10,7 +10,7 @@ import { getBackground } from '../data/backgrounds.js';
 function CameraRig({ closeUp }) {
   const { camera, controls } = useThree();
   const goal = useRef({ t: [0, 0.72, 0], d: 4.3 });
-  goal.current = closeUp ? { t: [0, 1.27, 0], d: 1.55 } : { t: [0, 0.72, 0], d: 4.3 };
+  goal.current = closeUp ? { t: [0, 1.38, 0], d: 2.1 } : { t: [0, 0.72, 0], d: 4.3 };
   useFrame(() => {
     if (!controls) return;
     const { t, d } = goal.current;

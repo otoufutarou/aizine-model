@@ -44,14 +44,14 @@ export function Head({ outfit, face = 'normal' }) {
 
       {/* beanie: knit dome + rolled band, checker texture, bear ears */}
       <group position={[0, -0.03, 0.015]} rotation={[-0.05, 0, 0]}>
-        <mesh geometry={domeGeometry(CUT)} position={[0, DOME_CY, -0.005]} scale={[0.25, DOME_RY, 0.235]} castShadow>
+        <mesh geometry={domeGeometry(CUT)} position={[0, DOME_CY + 0.1, -0.005]} scale={[0.25, DOME_RY, 0.235]} castShadow>
           <meshStandardMaterial map={hatTex} roughness={0.9} flatShading side={DoubleSide} />
         </mesh>
-        <P g="cylinder" a={[0.19, 0.19, 0.1, 16]} pos={[0, 0.26, -0.005]} scale={[1.17, 1, 1.15]} map={hatTex} flat />
+        <P g="cylinder" a={[0.19, 0.19, 0.21, 16]} pos={[0, 0.315, -0.005]} scale={[1.17, 1, 1.15]} map={hatTex} flat />
         {[1, -1].map((s) => (
-          <group key={s} position={[s * 0.125, 0.345, -0.02]} rotation={[0, 0, -s * 0.35]}>
-            <P g="icosahedron" a={[0.07, 1]} scale={[1, 1, 0.7]} c={hat.ear} flat />
-            <P g="icosahedron" a={[0.046, 1]} pos={[0, -0.003, 0.045]} scale={[1, 1, 0.5]} c={hat.earIn} flat />
+          <group key={s} position={[s * 0.15, 0.5, -0.02]} rotation={[0, 0, -s * 0.3]}>
+            <P g="icosahedron" a={[0.085, 1]} scale={[1, 1.3, 0.75]} c={hat.ear} flat />
+            <P g="icosahedron" a={[0.056, 1]} pos={[0, -0.005, 0.05]} scale={[1, 1.3, 0.5]} c={hat.earIn} flat />
           </group>
         ))}
         {outfit.extras.includes('ribbon') && (
