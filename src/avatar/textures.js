@@ -46,8 +46,8 @@ function drawEye(ctx, cx, cy, side, expr) {
     ctx.stroke();
   } else {
     // reference style: dull half-lidded eye, iris fills the opening, lid droops toward the outer corner
-    const w = 140;
-    const h = 124;
+    const w = 164;
+    const h = 146;
     const eye = () => {
       ctx.beginPath();
       ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2);

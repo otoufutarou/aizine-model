@@ -118,7 +118,7 @@ function Arm({ s, o, peace }) {
   const shine = o.sleeve === 'track' ? { metal: 0.35, rough: 0.4 } : {};
   const band = getAccessory(o, 'wristband');
   return (
-    <group name={`shoulder${side}`} position={[s * (o.sleeve === 'oversize' ? 0.225 : 0.205), 0.12, 0]} rotation={R(`shoulder${side}`)}>
+    <group name={`shoulder${side}`} position={[s * (o.sleeve === 'oversize' ? 0.225 : 0.205), 0.12, 0]} rotation={R(`shoulder${side}`)} scale={[0.86, 1, 0.86]}>
       {puff ? (
         <>
           <P g="sphere" a={[1, 8, 6]} pos={[0, -0.025, 0]} scale={[0.082, 0.075, 0.08]} c={t.color} />
@@ -287,7 +287,7 @@ function Torso({ o, face, peace }) {
         <group name="neck" position={[0, 0.15, 0]} rotation={R('neck')}>
           <P g="cylinder" a={[0.03, 0.036, 0.22, 10]} pos={[0, 0.04, 0]} c={SKIN} />
           {getAccessory(o, 'choker') && <P g="torus" a={[0.04, 0.007, 4, 10]} pos={[0, 0.03, 0]} rot={[PI2, 0, 0]} c={getAccessory(o, 'choker').color} />}
-          <group name="head" position={[0, 0.14, 0]} rotation={R('head')} scale={1.28}>
+          <group name="head" position={[0, 0.155, 0]} rotation={R('head')} scale={1.4}>
             <Head outfit={o} face={face} />
           </group>
         </group>
