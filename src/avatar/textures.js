@@ -45,59 +45,45 @@ function drawEye(ctx, cx, cy, side, expr) {
     ctx.lineTo(44, -6);
     ctx.stroke();
   } else {
-    // sleepy half-lidded eye: wide almond, heavy flat upper lid, small iris
-    const w = 150;
-    const h = 150;
+    // reference style: dull half-lidded eye, iris fills the opening, lid droops toward the outer corner
+    const w = 140;
+    const h = 124;
     const eye = () => {
       ctx.beginPath();
-      ctx.moveTo(-w / 2, 0);
-      ctx.bezierCurveTo(-w * 0.32, -h * 0.5, w * 0.32, -h * 0.5, w / 2, 0);
-      ctx.bezierCurveTo(w * 0.3, h * 0.5, -w * 0.3, h * 0.5, -w / 2, 0);
-      ctx.closePath();
+      ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2);
     };
     ctx.save();
     eye();
     ctx.clip();
     ctx.fillStyle = '#fffaf4';
     ctx.fillRect(-w, -h, w * 2, h * 2);
-    const g = ctx.createLinearGradient(0, -h * 0.3, 0, h * 0.5);
-    g.addColorStop(0, '#2a1814');
-    g.addColorStop(1, '#7a5238');
-    ctx.fillStyle = g;
+    ctx.fillStyle = '#4a342c';
     ctx.beginPath();
-    ctx.ellipse(0, h * 0.06, w * 0.3, h * 0.46, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 4, w * 0.44, h * 0.5, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#120a08';
+    ctx.fillStyle = '#1a100d';
     ctx.beginPath();
-    ctx.ellipse(0, h * 0.06, w * 0.15, h * 0.26, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 6, w * 0.22, h * 0.3, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(-side * 9, h * 0.0, 8, 0, Math.PI * 2);
+    ctx.arc(-side * 14, 16, 10, 0, Math.PI * 2);
     ctx.fill();
-    // droopy upper lid covers the top of the iris
+    // heavy lid: slanted cut, outer end lower
     ctx.fillStyle = SKIN;
     ctx.beginPath();
-    ctx.rect(-w, -h, w * 2, h * 0.5);
+    ctx.moveTo(-w, -h);
+    ctx.lineTo(w, -h);
+    ctx.lineTo(w, -12 + side * 16);
+    ctx.lineTo(-w, -12 - side * 16);
+    ctx.closePath();
     ctx.fill();
     ctx.restore();
     ctx.strokeStyle = '#1c1210';
-    ctx.lineWidth = 13;
+    ctx.lineWidth = 12;
     ctx.beginPath();
-    ctx.moveTo(-w / 2 - 4, side * 6 - 4);
-    ctx.lineTo(w / 2 + 4, -side * 6 - 4);
-    ctx.stroke();
-    ctx.lineWidth = 7;
-    ctx.beginPath();
-    ctx.moveTo(side * (w / 2), -side * 4 * 0 - 6);
-    ctx.lineTo(side * (w / 2 + 20), -14);
-    ctx.stroke();
-    // faint lower lid
-    ctx.strokeStyle = 'rgba(120,70,60,0.45)';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(-w * 0.34, h * 0.4);
-    ctx.quadraticCurveTo(0, h * 0.58, w * 0.34, h * 0.4);
+    ctx.moveTo(-side * (w / 2 + 2), -30);
+    ctx.quadraticCurveTo(0, -16, side * (w / 2 + 2), 4);
     ctx.stroke();
   }
   ctx.restore();
@@ -139,8 +125,8 @@ export function faceTexture(expr = 'normal') {
     ctx.fillRect(0, 0, W, H);
     drawBrow(ctx, W, H, -1);
     drawBrow(ctx, W, H, 1);
-    drawEye(ctx, W * 0.27, H * 0.6, -1, expr);
-    drawEye(ctx, W * 0.73, H * 0.6, 1, expr);
+    drawEye(ctx, W * 0.28, H * 0.58, -1, expr);
+    drawEye(ctx, W * 0.72, H * 0.58, 1, expr);
     drawCheek(ctx, W * 0.16, H * 0.82);
     drawCheek(ctx, W * 0.68, H * 0.82);
     return toTexture(c);
