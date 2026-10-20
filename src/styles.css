@@ -51,6 +51,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   font-weight: 800; padding: 6px 12px; border-radius: 99px; box-shadow: 3px 3px 0 var(--ink);
 }
 .spin.on { background: var(--pink); color: var(--white); }
+.spin.face-btn { top: 58px; }
 
 .panel { display: flex; flex-direction: column; min-height: 0; background: var(--ink-2); border-left: 3px solid var(--pink); }
 .tabs { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--ink); }

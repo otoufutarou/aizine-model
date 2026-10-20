@@ -27,82 +27,44 @@ function memo(key, build) {
   return cache.get(key);
 }
 
-// side: +1 = right side of the canvas, -1 = left. Outer corners are raised (slanted, long eyes).
+// Flat hand-drawn eye: tall rounded ellipse, no lashes, no shadow. side: +1 = right of canvas.
 function drawEye(ctx, cx, cy, side, expr) {
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.rotate(-side * 0.12);
-  ctx.scale(1.3, 1.3);
+  ctx.rotate(-side * 0.08);
   ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-
-  const arc = () => {
-    ctx.strokeStyle = '#2a1c18';
-    ctx.lineWidth = 15;
-    ctx.beginPath();
-    ctx.arc(0, 28, 52, Math.PI * 1.1, Math.PI * 1.9);
-    ctx.stroke();
-  };
-
+  ctx.strokeStyle = '#2a1c18';
+  ctx.lineWidth = 12;
   if (expr === 'smile') {
-    arc();
-  } else if (expr === 'wink' && side > 0) {
-    ctx.strokeStyle = '#2a1c18';
-    ctx.lineWidth = 15;
     ctx.beginPath();
-    ctx.moveTo(-52, 12);
-    ctx.lineTo(54, -8);
+    ctx.arc(0, 30, 44, Math.PI * 1.12, Math.PI * 1.88);
+    ctx.stroke();
+  } else if (expr === 'wink' && side > 0) {
+    ctx.beginPath();
+    ctx.moveTo(-44, 14);
+    ctx.lineTo(44, -6);
     ctx.stroke();
   } else {
-    const r = 16;
-    const x0 = -54;
-    const y0 = -52;
-    const w = 108;
-    const h = 118;
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(x0 + r, y0);
-    ctx.lineTo(x0 + w - r, y0);
-    ctx.quadraticCurveTo(x0 + w, y0, x0 + w, y0 + r);
-    ctx.lineTo(x0 + w, y0 + h - r);
-    ctx.quadraticCurveTo(x0 + w, y0 + h, x0 + w - r, y0 + h);
-    ctx.lineTo(x0 + r, y0 + h);
-    ctx.quadraticCurveTo(x0, y0 + h, x0, y0 + h - r);
-    ctx.lineTo(x0, y0 + r);
-    ctx.quadraticCurveTo(x0, y0, x0 + r, y0);
-    ctx.clip();
-    // flat banded iris (hand-drawn, no blur)
-    const bands = [
-      ['#2d2e34', 0],
-      ['#42454e', 0.28],
-      ['#646b78', 0.52],
-      ['#8b919b', 0.68],
-      ['#cdb94e', 0.84],
-    ];
-    bands.forEach(([col, t], i) => {
-      const next = bands[i + 1] ? bands[i + 1][1] : 1;
-      ctx.fillStyle = col;
-      ctx.fillRect(x0, y0 + h * t, w, h * (next - t) + 1);
-    });
-    // pupil
-    ctx.fillStyle = '#17171b';
-    ctx.fillRect(-20, y0 + 6, 40, h * 0.62);
-    // highlights
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(-side * 30 - 12, y0 + 14, 24, 22);
-    ctx.fillStyle = '#fff6b8';
-    ctx.fillRect(side * 18, y0 + h - 36, 14, 14);
-    ctx.restore();
-
-    // thick upper lash with an outward flick
+    const rx = 44;
+    const ry = 84;
     ctx.fillStyle = '#2a1c18';
     ctx.beginPath();
-    ctx.moveTo(-side * 62, y0 + 6);
-    ctx.lineTo(-side * 50, y0 - 14);
-    ctx.lineTo(side * 62, y0 - 20);
-    ctx.lineTo(side * 86, y0 - 34);
-    ctx.lineTo(side * 70, y0 + 8);
-    ctx.closePath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // flat lower band, hand-drawn style
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.fillStyle = '#5a3f3a';
+    ctx.fillRect(-rx, ry * 0.35, rx * 2, ry);
+    ctx.restore();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(-side * 14, -ry * 0.42, 15, 19, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(side * 14, ry * 0.45, 7, 9, 0, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
@@ -110,10 +72,10 @@ function drawEye(ctx, cx, cy, side, expr) {
 
 function drawBrow(ctx, W, H, side) {
   // tsuri-mayu: outer end high, inner end low
-  const inner = [0.5 + side * 0.08, 0.385];
-  const outer = [0.5 + side * 0.37, 0.3];
+  const inner = [0.5 + side * 0.08, 0.43];
+  const outer = [0.5 + side * 0.36, 0.365];
   ctx.strokeStyle = '#4a3128';
-  ctx.lineWidth = 15;
+  ctx.lineWidth = 8;
   ctx.lineCap = 'round';
   ctx.beginPath();
   ctx.moveTo(inner[0] * W, inner[1] * H);
@@ -144,18 +106,10 @@ export function faceTexture(expr = 'normal') {
     ctx.fillRect(0, 0, W, H);
     drawBrow(ctx, W, H, -1);
     drawBrow(ctx, W, H, 1);
-    drawEye(ctx, W * 0.3, H * 0.55, -1, expr);
-    drawEye(ctx, W * 0.7, H * 0.55, 1, expr);
-    drawCheek(ctx, W * 0.16, H * 0.76);
-    drawCheek(ctx, W * 0.68, H * 0.76);
-    if (expr === 'smile' || expr === 'wink') {
-      ctx.strokeStyle = '#c4655a';
-      ctx.lineWidth = 8;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.arc(W * 0.5, H * 0.86, 20, 0.15 * Math.PI, 0.85 * Math.PI);
-      ctx.stroke();
-    }
+    drawEye(ctx, W * 0.3, H * 0.6, -1, expr);
+    drawEye(ctx, W * 0.7, H * 0.6, 1, expr);
+    drawCheek(ctx, W * 0.16, H * 0.82);
+    drawCheek(ctx, W * 0.68, H * 0.82);
     return toTexture(c);
   });
 }

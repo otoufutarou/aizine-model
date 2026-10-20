@@ -20,10 +20,10 @@ function Shoe({ shoes }) {
   const zig = zigzagTexture(accent);
   return (
     <group>
-      <P g="sphere" a={[1, 10, 7]} pos={[0, -0.04, 0.04]} scale={[0.115, 0.05, 0.19]} c={sole} />
-      <P g="sphere" a={[1, 10, 8]} pos={[0, 0.035, 0.04]} scale={[0.108, 0.1, 0.17]} c={upper} />
-      <P g="sphere" a={[1, 8, 6]} pos={[0, -0.002, 0.15]} scale={[0.07, 0.05, 0.06]} c={sole} />
-      <P g="sphere" a={[1, 8, 6]} pos={[0, 0.1, -0.03]} scale={[0.075, 0.05, 0.075]} c={upper} />
+      <P g="sphere" a={[1, 10, 7]} pos={[0, -0.04, 0.04]} scale={[0.115, 0.05, 0.19]} c={sole} flat />
+      <P g="sphere" a={[1, 10, 8]} pos={[0, 0.035, 0.04]} scale={[0.108, 0.1, 0.17]} c={upper} flat />
+      <P g="sphere" a={[1, 8, 6]} pos={[0, -0.002, 0.15]} scale={[0.07, 0.05, 0.06]} c={sole} flat />
+      <P g="sphere" a={[1, 8, 6]} pos={[0, 0.1, -0.03]} scale={[0.075, 0.05, 0.075]} c={upper} flat />
       {[1, -1].map((s) => (
         <Decal key={s} map={zig} size={[0.12, 0.045]} pos={[s * 0.1175, -0.04, 0.04]} rot={[0, s * PI2, 0]} />
       ))}
@@ -155,9 +155,9 @@ function Torso({ o, face, peace }) {
         <Arm s={1} o={o} peace={peace} />
         <Arm s={-1} o={o} peace={peace} />
         <group name="neck" position={[0, 0.15, 0]} rotation={R('neck')}>
-          <P g="cylinder" a={[0.034, 0.04, 0.16, 8]} pos={[0, 0.02, 0]} c={SKIN} />
+          <P g="cylinder" a={[0.03, 0.036, 0.22, 10]} pos={[0, 0.04, 0]} c={SKIN} />
           {o.extras.includes('choker') && <P g="torus" a={[0.04, 0.007, 4, 10]} pos={[0, 0.03, 0]} rot={[PI2, 0, 0]} c="#ff4fa3" />}
-          <group name="head" position={[0, 0.09, 0]} rotation={R('head')} scale={1.28}>
+          <group name="head" position={[0, 0.14, 0]} rotation={R('head')} scale={1.28}>
             <Head outfit={o} face={face} />
           </group>
         </group>

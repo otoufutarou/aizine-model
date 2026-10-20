@@ -1,10 +1,31 @@
 import { Suspense, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, ContactShadows } from '@react-three/drei';
 import { Avatar } from '../avatar/Avatar.jsx';
 import { getOutfit } from '../data/outfits.js';
 import { getPose } from '../data/poses.js';
 import { getBackground } from '../data/backgrounds.js';
+
+// Smoothly moves the camera between full-body and face close-up views.
+function CameraRig({ closeUp }) {
+  const { camera, controls } = useThree();
+  const goal = useRef({ t: [0, 0.72, 0], d: 4.3 });
+  goal.current = closeUp ? { t: [0, 1.27, 0], d: 1.55 } : { t: [0, 0.72, 0], d: 4.3 };
+  useFrame(() => {
+    if (!controls) return;
+    const { t, d } = goal.current;
+    controls.target.y += (t[1] - controls.target.y) * 0.12;
+    const dir = camera.position.clone().sub(controls.target);
+    const cur = dir.length();
+    const next = cur + (d - cur) * 0.12;
+    if (Math.abs(next - cur) > 0.0005 || Math.abs(t[1] - controls.target.y) > 0.0005) {
+      dir.setLength(next);
+      camera.position.copy(controls.target).add(dir);
+      controls.update();
+    }
+  });
+  return null;
+}
 
 function Props({ bg }) {
   const group = useRef();
@@ -88,7 +109,7 @@ function Props({ bg }) {
   );
 }
 
-export function Stage({ outfitId, poseId, bgId, autoRotate }) {
+export function Stage({ outfitId, poseId, bgId, autoRotate, closeUp }) {
   const outfit = getOutfit(outfitId);
   const pose = getPose(poseId);
   const bg = getBackground(bgId);
@@ -118,10 +139,12 @@ export function Stage({ outfitId, poseId, bgId, autoRotate }) {
           </mesh>
           <ContactShadows position={[0, 0.01, 0]} opacity={0.4} scale={4} blur={2.4} far={1.5} />
         </Suspense>
+        <CameraRig closeUp={closeUp} />
         <OrbitControls
+          makeDefault
           target={[0, 0.72, 0]}
           enablePan={false}
-          minDistance={2.2}
+          minDistance={1.2}
           maxDistance={6}
           minPolarAngle={Math.PI * 0.3}
           maxPolarAngle={Math.PI * 0.55}

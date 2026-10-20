@@ -1,4 +1,6 @@
 import { CylinderGeometry, LatheGeometry, SphereGeometry, Vector2 } from 'three';
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
 // Low-poly but rounded: every part is a deformed sphere / lathe / cylinder, never a box.
 const cache = new Map();
@@ -45,32 +47,26 @@ export function frontZ(pts, y) {
   return 0.1;
 }
 
-// Head: a deformed sphere with wide round cheeks and a narrow chin.
-// The front triangles (group 0) get planar-projected UVs for the hand-drawn face texture.
+// Head: a softly rounded square (rounded box) with a flat front for the hand-drawn face.
+// Front triangles (group 0) get planar-projected UVs for the face texture.
 export const HEAD_CY = 0.15;
 const FACE_W = 0.34;
 const FACE_H = 0.306;
 export function headGeometry() {
   return memo('head', () => {
-    const g = new SphereGeometry(1, 16, 12);
-    const p = g.attributes.position;
-    const uv = g.attributes.uv;
-    const RX = 0.168;
-    const RY = 0.14;
-    const RZ = 0.15;
+    const raw = new RoundedBoxGeometry(0.34, 0.31, 0.3, 6, 0.065);
+    const p = raw.attributes.position;
+    const uv = raw.attributes.uv;
     for (let i = 0; i < p.count; i += 1) {
-      const nx = p.getX(i);
-      const ny = p.getY(i);
-      const nz = p.getZ(i);
-      const low = Math.max(0, -ny - 0.15) / 0.85;
-      const taper = 1 - 0.5 * low ** 1.25;
-      const cheek = 1 + 0.06 * Math.max(0, 1 - Math.abs(ny + 0.3) * 2.5);
-      const x = nx * RX * taper * cheek;
-      const y = HEAD_CY + ny * RY;
-      const z = nz * RZ * (1 - 0.22 * low ** 1.25);
-      p.setXYZ(i, x, y, z);
+      const ny = p.getY(i) / 0.155; // -1 chin .. 1 crown
+      const jaw = ny < 0 ? 1 - 0.07 * -ny : 1;
+      const x = p.getX(i) * jaw;
+      const y = HEAD_CY + p.getY(i);
+      p.setXYZ(i, x, y, p.getZ(i));
       uv.setXY(i, 0.5 + x / FACE_W, 0.5 + (y - 0.14) / FACE_H);
     }
+    const g = mergeVertices(raw);
+    const mp = g.attributes.position;
     const index = g.getIndex().array;
     const front = [];
     const back = [];
@@ -78,14 +74,13 @@ export function headGeometry() {
       const a = index[i];
       const b = index[i + 1];
       const c = index[i + 2];
-      const cz = (p.getZ(a) + p.getZ(b) + p.getZ(c)) / 3;
+      const cz = (mp.getZ(a) + mp.getZ(b) + mp.getZ(c)) / 3;
       (cz > 0 ? front : back).push(a, b, c);
     }
     g.setIndex([...front, ...back]);
     g.clearGroups();
     g.addGroup(0, front.length, 0);
     g.addGroup(front.length, back.length, 1);
-    g.computeVertexNormals();
     return g;
   });
 }

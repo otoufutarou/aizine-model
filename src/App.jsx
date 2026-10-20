@@ -26,6 +26,7 @@ export default function App() {
   const [pose, setPose] = useState(DEFAULT_POSE);
   const [bg, setBg] = useState(DEFAULT_BG);
   const [spin, setSpin] = useState(false);
+  const [closeUp, setCloseUp] = useState(false);
   const [tab, setTab] = useState('outfit');
   const [messages, setMessages] = useState(() => [
     msg('aira', 'はじめまして、AIRAだよ♡ 「ガーリーにして」「ピースして」「夜の背景」みたいに話しかけてね！'),
@@ -60,12 +61,15 @@ export default function App() {
 
       <main className="layout">
         <section className="stage-wrap">
-          <Stage outfitId={outfit} poseId={pose} bgId={bg} autoRotate={spin} />
+          <Stage outfitId={outfit} poseId={pose} bgId={bg} autoRotate={spin} closeUp={closeUp} />
           <div className="profile">
             <b>AIRA</b> <span>20歳 / VIRTUAL MODEL</span>
           </div>
           <button type="button" className={`spin ${spin ? 'on' : ''}`} onClick={() => setSpin((s) => !s)}>
             ⟳ 360°
+          </button>
+          <button type="button" className={`spin face-btn ${closeUp ? 'on' : ''}`} onClick={() => setCloseUp((c) => !c)}>
+            ☺ FACE
           </button>
         </section>
 
