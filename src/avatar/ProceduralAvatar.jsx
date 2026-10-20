@@ -12,7 +12,7 @@ import {
 } from './geometry.js';
 
 const SKIN = '#fbd9c4';
-const HIPS_Y = 0.64;
+const HIPS_Y = 0.74;
 const R = (name) => BASE_POSE[name];
 const PI2 = Math.PI / 2;
 
@@ -63,32 +63,32 @@ function Leg({ s, o }) {
   return (
     <group name={`thigh${side}`} position={[s * hx, -0.03, 0]} rotation={R(`thigh${side}`)}>
       <P g="sphere" a={[1, 8, 6]} scale={[rt * 1.05, rt * 1.05, rt * 1.05]} c={bare ? SKIN : b.color} {...mat} />
-      <P g="cylinder" a={[rt, rk, 0.26, 9]} pos={[0, -0.13, 0]} c={bare ? SKIN : b.color} {...mat} />
+      <P g="cylinder" a={[rt, rk, 0.31, 9]} pos={[0, -0.155, 0]} c={bare ? SKIN : b.color} {...mat} />
       {b.type === 'cargo' && (
         <>
           <P g="sphere" a={[1, 7, 5]} pos={[s * 0.112, -0.1, 0.01]} scale={[0.03, 0.06, 0.07]} c={b.light} />
           <P g="cylinder" a={[0.026, 0.026, 0.004, 3]} pos={[s * 0.143, -0.1, 0.01]} rot={[0, 0, PI2]} c={b.accent} />
         </>
       )}
-      <group name={`knee${side}`} position={[0, -0.26, 0]} rotation={R(`knee${side}`)}>
+      <group name={`knee${side}`} position={[0, -0.31, 0]} rotation={R(`knee${side}`)}>
         <P g="sphere" a={[1, 8, 6]} scale={[rk, rk, rk]} c={bare ? SKIN : b.color} {...mat} />
         {bare ? (
           <>
-            <P g="cylinder" a={[0.04, 0.034, 0.24, 8]} pos={[0, -0.12, 0]} c={SKIN} />
+            <P g="cylinder" a={[0.04, 0.034, 0.29, 8]} pos={[0, -0.145, 0]} c={SKIN} />
             {o.socks && (
               <>
-                <P g="cylinder" a={[0.048, 0.046, 0.15, 8]} pos={[0, -0.14, 0]} c={o.socks} />
-                <P g="cylinder" a={[0.052, 0.05, 0.025, 8]} pos={[0, -0.075, 0]} c="#ffc2dd" />
+                <P g="cylinder" a={[0.048, 0.046, 0.15, 8]} pos={[0, -0.19, 0]} c={o.socks} />
+                <P g="cylinder" a={[0.052, 0.05, 0.025, 8]} pos={[0, -0.125, 0]} c="#ffc2dd" />
               </>
             )}
           </>
         ) : (
-          <P g="cylinder" a={[rk, rh, 0.22, 9]} pos={[0, -0.11, 0]} c={b.color} {...mat} />
+          <P g="cylinder" a={[rk, rh, 0.27, 9]} pos={[0, -0.135, 0]} c={b.color} {...mat} />
         )}
-        {(b.type === 'cargo' || b.type === 'baggy') && <P g="cylinder" a={[rh, rh + 0.006, 0.05, 9]} pos={[0, -0.205, 0]} c={b.light} />}
-        {b.type === 'wide' && <P g="cylinder" a={[rh, rh + 0.004, 0.03, 9]} pos={[0, -0.215, 0]} c={b.light} />}
-        {nylon && <P g="torus" a={[rh, 0.016, 4, 9]} pos={[0, -0.2, 0]} rot={[PI2, 0, 0]} c={b.accent} />}
-        <group position={[0, -0.242, 0]} scale={boot ? 1.15 : 1.2}>
+        {(b.type === 'cargo' || b.type === 'baggy') && <P g="cylinder" a={[rh, rh + 0.006, 0.05, 9]} pos={[0, -0.255, 0]} c={b.light} />}
+        {b.type === 'wide' && <P g="cylinder" a={[rh, rh + 0.004, 0.03, 9]} pos={[0, -0.265, 0]} c={b.light} />}
+        {nylon && <P g="torus" a={[rh, 0.016, 4, 9]} pos={[0, -0.25, 0]} rot={[PI2, 0, 0]} c={b.accent} />}
+        <group position={[0, -0.292, 0]} scale={boot ? 1.15 : 1.2}>
           <Shoe shoes={o.shoes} />
         </group>
       </group>
@@ -107,6 +107,39 @@ const SLEEVES = {
   short: { sh: 0.062, up: [0.052, 0.06], el: 0.04, lo: [0.034, 0.03], skinLower: true },
 };
 
+// Low-poly 5-finger hand: palm + 4 fingers + thumb on the body side.
+const FINGERS = [
+  { x: -0.034, len: 0.05, tilt: 0.12 },
+  { x: -0.012, len: 0.06, tilt: 0.04 },
+  { x: 0.011, len: 0.055, tilt: -0.04 },
+  { x: 0.032, len: 0.042, tilt: -0.12 },
+];
+
+function Hand({ s, peace }) {
+  const R_ = 0.0125;
+  return (
+    <group position={[0, -0.25, 0]}>
+      <P g="sphere" a={[1, 8, 6]} scale={[0.047, 0.05, 0.027]} c={SKIN} />
+      {FINGERS.map((f, i) => {
+        const curled = peace && i >= 2;
+        const len = curled ? f.len * 0.45 : f.len;
+        const tilt = peace && i < 2 ? (i === 0 ? 0.3 : -0.3) : f.tilt;
+        return (
+          <P
+            key={i}
+            g="capsule"
+            a={[R_, len, 3, 6]}
+            pos={[f.x * s, -0.04 - len / 2, curled ? 0.012 : 0]}
+            rot={[0, 0, tilt * s]}
+            c={SKIN}
+          />
+        );
+      })}
+      <P g="capsule" a={[0.014, 0.036, 3, 6]} pos={[-s * 0.05, -0.012, 0.008]} rot={[0, 0, -s * 0.75]} c={SKIN} />
+    </group>
+  );
+}
+
 function Arm({ s, o, peace }) {
   const side = s > 0 ? 'L' : 'R';
   const t = o.top;
@@ -122,36 +155,30 @@ function Arm({ s, o, peace }) {
       {puff ? (
         <>
           <P g="sphere" a={[1, 8, 6]} pos={[0, -0.025, 0]} scale={[0.082, 0.075, 0.08]} c={t.color} />
-          <P g="cylinder" a={[0.034, 0.03, 0.18, 7]} pos={[0, -0.09, 0]} c={SKIN} />
+          <P g="cylinder" a={[0.034, 0.03, 0.22, 7]} pos={[0, -0.11, 0]} c={SKIN} />
         </>
       ) : (
         <>
           <P g="sphere" a={[1, 8, 6]} scale={[d.sh, d.sh, d.sh]} c={sleeveColor} {...shine} />
-          <P g="cylinder" a={[d.up[0], d.up[1], 0.18, 8]} pos={[0, -0.09, 0]} c={sleeveColor} {...shine} />
+          <P g="cylinder" a={[d.up[0], d.up[1], 0.22, 8]} pos={[0, -0.11, 0]} c={sleeveColor} {...shine} />
           {o.sleeve === 'track' && <P g="torus" a={[0.062, 0.01, 4, 9]} pos={[0, -0.07, 0]} rot={[PI2, 0, 0]} c={t.accent} />}
         </>
       )}
-      <group name={`elbow${side}`} position={[0, -0.18, 0]} rotation={R(`elbow${side}`)}>
+      <group name={`elbow${side}`} position={[0, -0.22, 0]} rotation={R(`elbow${side}`)}>
         {puff ? (
           <>
             <P g="sphere" a={[1, 7, 5]} scale={[0.034, 0.034, 0.034]} c={SKIN} />
-            <P g="cylinder" a={[0.03, 0.026, 0.17, 7]} pos={[0, -0.085, 0]} c={SKIN} />
+            <P g="cylinder" a={[0.03, 0.026, 0.21, 7]} pos={[0, -0.105, 0]} c={SKIN} />
           </>
         ) : (
           <>
             <P g="sphere" a={[1, 8, 6]} scale={[d.el, d.el, d.el]} c={lowerColor} {...shine} />
-            <P g="cylinder" a={[d.lo[0], d.lo[1], 0.17, 8]} pos={[0, -0.085, 0]} c={lowerColor} {...shine} />
-            {d.cuff && <P g="cylinder" a={[d.cuff, d.cuff, 0.022, 8]} pos={[0, -0.165, 0]} c={t.accent} />}
+            <P g="cylinder" a={[d.lo[0], d.lo[1], 0.21, 8]} pos={[0, -0.105, 0]} c={lowerColor} {...shine} />
+            {d.cuff && <P g="cylinder" a={[d.cuff, d.cuff, 0.022, 8]} pos={[0, -0.205, 0]} c={t.accent} />}
           </>
         )}
-        {band && <P g="torus" a={[0.04, 0.014, 4, 9]} pos={[0, -0.18, 0]} rot={[PI2, 0, 0]} c={band.color} />}
-        <P g="sphere" a={[1, 8, 6]} pos={[0, -0.2, 0]} scale={[0.036, 0.042, 0.03]} c={SKIN} />
-        {peace && s < 0 && (
-          <>
-            <P g="cylinder" a={[0.009, 0.011, 0.08, 6]} pos={[-0.014, -0.26, 0]} rot={[0, 0, 0.25]} c={SKIN} />
-            <P g="cylinder" a={[0.009, 0.011, 0.08, 6]} pos={[0.014, -0.26, 0]} rot={[0, 0, -0.25]} c={SKIN} />
-          </>
-        )}
+        {band && <P g="torus" a={[0.04, 0.014, 4, 9]} pos={[0, -0.22, 0]} rot={[PI2, 0, 0]} c={band.color} />}
+        <Hand s={s} peace={peace && s < 0} />
       </group>
     </group>
   );
