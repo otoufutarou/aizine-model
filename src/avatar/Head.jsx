@@ -1,64 +1,64 @@
 import { useMemo } from 'react';
-import { BoxGeometry } from 'three';
-import { B, P } from './Prims.jsx';
+import { DoubleSide } from 'three';
+import { M, P } from './Prims.jsx';
 import { faceTexture, hatTexture } from './textures.js';
+import { domeGeometry, hairShell, headGeometry } from './geometry.js';
 
 const SKIN = '#fbd9c4';
 const HAIR = '#3b2a26';
+const DOME_CY = 0.17;
+const DOME_RY = 0.22;
+const CUT = (0.26 - DOME_CY) / DOME_RY;
 
-// Origin = top of the neck. Head centre sits at y = 0.14.
+// Origin = base of the head (just above the neck). Head centre sits at y = 0.15.
 export function Head({ outfit, face = 'normal' }) {
-  const geo = useMemo(() => {
-    const g = new BoxGeometry(0.3, 0.27, 0.27);
-    const p = g.attributes.position;
-    for (let i = 0; i < p.count; i += 1) {
-      if (p.getY(i) < 0) p.setX(i, p.getX(i) * 0.86);
-    }
-    return g;
-  }, []);
   const faceTex = useMemo(() => faceTexture(face), [face]);
   const { hat } = outfit;
   const hatTex = useMemo(() => hatTexture(hat.palette, hat.pink), [hat]);
 
+  const backHair = hairShell('hair-back', {
+    rTop: 0.165, rBot: 0.15, h: 0.46, rx: 1.0, rz: 0.96,
+    thetaStart: Math.PI * 0.52, thetaLength: Math.PI * 0.96,
+  });
+  const sideHair = (s) => hairShell(`hair-side-${s}`, {
+    rTop: 0.162, rBot: 0.15, h: 0.4, rx: 1.0, rz: 0.96,
+    thetaStart: s > 0 ? Math.PI * 0.3 : Math.PI * 1.34,
+    thetaLength: Math.PI * 0.36, jag: 0.03, bulge: 0.03,
+  });
+
   return (
     <group>
-      {/* head: front face (material 4) carries the hand-drawn face */}
-      <mesh geometry={geo} position={[0, 0.14, 0]} castShadow>
-        {[0, 1, 2, 3, 5].map((i) => (
-          <meshStandardMaterial key={i} attach={`material-${i}`} color={SKIN} flatShading roughness={0.9} />
-        ))}
-        <meshStandardMaterial attach="material-4" map={faceTex} roughness={0.9} />
+      {/* head: deformed sphere; group 0 is the front carrying the hand-drawn face */}
+      <mesh geometry={headGeometry()} castShadow>
+        <meshStandardMaterial attach="material-0" map={faceTex} roughness={0.9} flatShading />
+        <meshStandardMaterial attach="material-1" color={SKIN} roughness={0.9} flatShading />
       </mesh>
 
-      {/* hair: back + side panels with jagged tips */}
-      <B a={[0.34, 0.5, 0.07]} pos={[0, 0.06, -0.145]} c={HAIR} />
-      {[-0.13, -0.065, 0, 0.065, 0.13].map((x, i) => (
-        <B key={x} a={[0.065, 0.04 + (i % 3) * 0.035, 0.07]} pos={[x, -0.2 - (i % 3) * 0.0175, -0.145]} c={HAIR} />
-      ))}
+      {/* hair: curved curtains falling from under the beanie + two face-framing locks */}
+      <M geo={backHair} pos={[0, 0.03, -0.01]} c={HAIR} side={DoubleSide} />
+      <M geo={sideHair(1)} pos={[0, 0.02, -0.01]} c={HAIR} side={DoubleSide} />
+      <M geo={sideHair(-1)} pos={[0, 0.02, -0.01]} c={HAIR} side={DoubleSide} />
       {[1, -1].map((s) => (
-        <group key={s}>
-          <B a={[0.045, 0.5, 0.26]} pos={[s * 0.16, 0.055, -0.01]} c={HAIR} />
-          <B a={[0.045, 0.07, 0.2]} pos={[s * 0.16, -0.23, -0.04]} c={HAIR} />
-          <B a={[0.04, 0.34, 0.05]} pos={[s * 0.14, 0.09, 0.125]} c={HAIR} />
-        </group>
+        <P key={s} g="sphere" a={[1, 8, 6]} pos={[s * 0.165, 0.06, 0.02]} rot={[0, 0, s * 0.05]} scale={[0.03, 0.17, 0.055]} c={HAIR} />
       ))}
 
-      {/* beanie with checker pattern and bear ears */}
-      <group rotation={[-0.04, 0, 0]}>
-        <B a={[0.35, 0.13, 0.32]} pos={[0, 0.275, -0.005]} map={hatTex} />
-        <B a={[0.31, 0.06, 0.28]} pos={[0, 0.37, -0.01]} map={hatTex} />
-        <B a={[0.355, 0.02, 0.325]} pos={[0, 0.215, -0.005]} map={hatTex} />
+      {/* beanie: knit dome + rolled band, checker texture, bear ears */}
+      <group rotation={[-0.05, 0, 0]}>
+        <mesh geometry={domeGeometry(CUT)} position={[0, DOME_CY, -0.005]} scale={[0.19, DOME_RY, 0.188]} castShadow>
+          <meshStandardMaterial map={hatTex} roughness={0.9} flatShading side={DoubleSide} />
+        </mesh>
+        <P g="cylinder" a={[0.18, 0.176, 0.05, 14]} pos={[0, 0.248, -0.005]} scale={[1.0, 1, 0.99]} map={hatTex} />
         {[1, -1].map((s) => (
-          <group key={s} position={[s * 0.14, 0.405, -0.02]} rotation={[0, 0, -s * 0.3]}>
-            <P g="icosahedron" a={[0.08, 0]} scale={[1, 1, 0.7]} c={hat.ear} />
-            <P g="icosahedron" a={[0.052, 0]} pos={[0, -0.005, 0.05]} scale={[1, 1, 0.5]} c={hat.earIn} />
+          <group key={s} position={[s * 0.125, 0.345, -0.02]} rotation={[0, 0, -s * 0.35]}>
+            <P g="icosahedron" a={[0.07, 1]} scale={[1, 1, 0.7]} c={hat.ear} />
+            <P g="icosahedron" a={[0.046, 1]} pos={[0, -0.003, 0.045]} scale={[1, 1, 0.5]} c={hat.earIn} />
           </group>
         ))}
         {outfit.extras.includes('ribbon') && (
-          <group position={[0.1, 0.33, 0.165]} rotation={[0, 0.3, 0.2]}>
-            <B a={[0.05, 0.045, 0.02]} pos={[0.035, 0, 0]} c="#ff4fa3" />
-            <B a={[0.05, 0.045, 0.02]} pos={[-0.035, 0, 0]} c="#ff4fa3" />
-            <B a={[0.028, 0.028, 0.026]} c="#ffd1e6" />
+          <group position={[0.125, 0.255, 0.115]} rotation={[0, 0.7, 0.25]}>
+            <P g="sphere" a={[1, 6, 5]} pos={[0.04, 0, 0]} scale={[0.04, 0.03, 0.018]} c="#ff4fa3" />
+            <P g="sphere" a={[1, 6, 5]} pos={[-0.04, 0, 0]} scale={[0.04, 0.03, 0.018]} c="#ff4fa3" />
+            <P g="sphere" a={[0.022, 6, 5]} scale={[1, 1, 0.8]} c="#ffd1e6" />
           </group>
         )}
       </group>

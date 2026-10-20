@@ -1,4 +1,4 @@
-import { CanvasTexture, NearestFilter, SRGBColorSpace } from 'three';
+import { CanvasTexture, NearestFilter, RepeatWrapping, SRGBColorSpace } from 'three';
 
 const SKIN = '#fbd9c4';
 const cache = new Map();
@@ -32,7 +32,7 @@ function drawEye(ctx, cx, cy, side, expr) {
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(-side * 0.12);
-  ctx.scale(1.18, 1.18);
+  ctx.scale(1.3, 1.3);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
@@ -144,10 +144,10 @@ export function faceTexture(expr = 'normal') {
     ctx.fillRect(0, 0, W, H);
     drawBrow(ctx, W, H, -1);
     drawBrow(ctx, W, H, 1);
-    drawEye(ctx, W * 0.3, H * 0.6, -1, expr);
-    drawEye(ctx, W * 0.7, H * 0.6, 1, expr);
-    drawCheek(ctx, W * 0.1, H * 0.82);
-    drawCheek(ctx, W * 0.76, H * 0.82);
+    drawEye(ctx, W * 0.3, H * 0.55, -1, expr);
+    drawEye(ctx, W * 0.7, H * 0.55, 1, expr);
+    drawCheek(ctx, W * 0.16, H * 0.76);
+    drawCheek(ctx, W * 0.68, H * 0.76);
     if (expr === 'smile' || expr === 'wink') {
       ctx.strokeStyle = '#c4655a';
       ctx.lineWidth = 8;
@@ -175,7 +175,11 @@ export function hatTexture(palette, pink) {
         ctx.fillRect(i * S, j * S, S, S);
       }
     }
-    return toTexture(c, true);
+    const t = toTexture(c, true);
+    t.wrapS = RepeatWrapping;
+    t.wrapT = RepeatWrapping;
+    t.repeat.set(2, 1);
+    return t;
   });
 }
 

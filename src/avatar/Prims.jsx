@@ -1,11 +1,10 @@
 import { createElement } from 'react';
 
-// Low-poly box: <B a={[w, h, d]} pos={[..]} c="#fff" />
-export function B({ a, pos, rot, c = '#fff', rough = 0.85, metal = 0, children, ...mat }) {
+// Mesh from a prebuilt geometry (lathe / deformed sphere ...)
+export function M({ geo, pos, rot, scale, c = '#fff', rough = 0.85, metal = 0, side, children, ...mat }) {
   return (
-    <mesh position={pos} rotation={rot} castShadow>
-      <boxGeometry args={a} />
-      <meshStandardMaterial color={c} roughness={rough} metalness={metal} flatShading {...mat} />
+    <mesh geometry={geo} position={pos} rotation={rot} scale={scale} castShadow>
+      <meshStandardMaterial color={c} roughness={rough} metalness={metal} side={side} flatShading {...mat} />
       {children}
     </mesh>
   );
