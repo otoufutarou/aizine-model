@@ -91,10 +91,10 @@ function drawEye(ctx, cx, cy, side, expr) {
 
 function drawBrow(ctx, W, H, side) {
   // tsuri-mayu: outer end high, inner end low
-  const inner = [0.5 + side * 0.1, 0.445];
-  const outer = [0.5 + side * 0.38, 0.385];
+  const inner = [0.5 + side * 0.1, 0.42];
+  const outer = [0.5 + side * 0.38, 0.36];
   ctx.strokeStyle = '#4a3128';
-  ctx.lineWidth = 6;
+  ctx.lineWidth = 9;
   ctx.lineCap = 'round';
   ctx.beginPath();
   ctx.moveTo(inner[0] * W, inner[1] * H);
@@ -123,10 +123,10 @@ export function faceTexture(expr = 'normal') {
     const ctx = c.getContext('2d');
     ctx.fillStyle = SKIN;
     ctx.fillRect(0, 0, W, H);
+    drawEye(ctx, W * 0.28, H * 0.53, -1, expr);
+    drawEye(ctx, W * 0.72, H * 0.53, 1, expr);
     drawBrow(ctx, W, H, -1);
     drawBrow(ctx, W, H, 1);
-    drawEye(ctx, W * 0.28, H * 0.55, -1, expr);
-    drawEye(ctx, W * 0.72, H * 0.55, 1, expr);
     drawCheek(ctx, W * 0.16, H * 0.82);
     drawCheek(ctx, W * 0.68, H * 0.82);
     return toTexture(c);
