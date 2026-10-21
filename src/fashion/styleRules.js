@@ -1,15 +1,8 @@
-// Styling rules for AIRA's four ViVi-inspired style lines.
+// Styling rules for AIRA's four trend-inspired style lines.
 // Rules are data only: outfits.js must satisfy them (checked by validateOutfit + tests),
 // and the chat parser reads `keywords` from here. See docs/AIRA_FASHION_GUIDE.md.
 
 export const SLOTS = ['hat', 'top', 'bottom', 'shoes', 'accessories'];
-
-export const SOURCES = {
-  kbrand: { url: 'https://www.vivi.tv/post493932/', note: 'K-BRAND特集（馬蹄バッグ、ファーハット、ヘルシーぎゃる）' },
-  kcore: { url: 'https://www.vivi.tv/post493390/', note: '4大K-CORE（シティオンニ／Y2K日本ギャル／レトロドリーム／スポーツMIX）' },
-  offrunway: { url: 'https://www.vivi.tv/post491428/', note: 'オフランウェイHOT LIST（でかジャケ×ジャージ、シャカシャカ、手袋）' },
-  snap: { url: 'https://www.vivi.tv/post481674/', note: 'ビビッとストリート（バッグ相棒、腰回りレイヤード）' },
-};
 
 export const STYLE_RULES = {
   kstreet: {

@@ -170,7 +170,7 @@ function Arm({ s, o, peace }) {
 const STYLE_TOPS = ['crop', 'shortJacket', 'track', 'oversize'];
 const ring = (y, r, sx = TORSO_X, sz = TORSO_Z) => ({ pos: [0, y, 0], rot: [PI2, 0, 0], scale: [sx, sz, 1], a: [r, 0.012, 4, 12] });
 
-// Tops of the ViVi style lines, drawn in chest-local space over the chest lathe.
+// Tops of the trend style lines, drawn in chest-local space over the chest lathe.
 function StyleTop({ t }) {
   if (!STYLE_TOPS.includes(t.type)) return null;
   if (t.type === 'crop') {

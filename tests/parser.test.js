@@ -37,13 +37,13 @@ test('expression keywords are independent of pose and outfit', () => {
   assert.deepEqual(ids('ウインクしてピース'), ['expression:wink', 'pose:peace']);
 });
 
-test('ViVi knowledge: moods, advice and explanations', () => {
+test('Fashion knowledge: moods, advice and explanations', () => {
   assert.deepEqual(ids('デートっぽくして'), ['outfit:girly']);
   assert.deepEqual(ids('ライブ行くよ'), ['outfit:kstreet']);
   assert.deepEqual(ids('秋っぽいコーデがいい'), ['outfit:city']);
   assert.deepEqual(ids('差し色のコツは？'), []);
   assert.ok(parseCommand('差し色のコツは？').lines[0].length > 10);
-  assert.match(parseCommand('ViViのトレンドは？').lines[0], /K-CORE|ゆる/);
+  assert.match(parseCommand('トレンドは？').lines[0], /K-CORE|ゆる/);
   assert.match(parseCommand('今のコーデのポイントは？', undefined, { outfit: 'city' }).lines[0], /CITY MODE/);
   const rec = parseCommand('おすすめは？', (a) => a[0], { outfit: 'kstreet' });
   assert.equal(rec.actions[0].type, 'outfit');
