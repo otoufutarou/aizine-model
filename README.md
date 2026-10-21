@@ -76,24 +76,30 @@ tests/parser.test.js
 
 ## AI ViVi PROJECT 提案資料（電通出版局 社内AIハッカソン）
 
-キャッチコピー「MAGAZINE MAKES HUMAN. / 雑誌は、人をつくる。」。ViViの編集資産から生まれるAI人格 AIRA を提案する全15枚・16:9のpptxです（構想段階の企画。アーカイブ連携・出演・契約は未確定）。
+「MAGAZINE MAKES HUMAN. / 人がつくった雑誌が、今度は人を生み出す。」。講談社ViViの編集資産・感性を人格化したAIモデル AIRA を活用する新しい広告ビジネスの**事業構想**を議論するための全15枚・16:9のpptxです。技術実装状況・開発進捗・PoC報告ではありません。AIRAは構想上のAIモデルであり、ViViアーカイブの利用・講談社との共同事業・出演・広告契約は未確定です。
+
+構成: 01 問い／02 葬られたアイデア／03 雑誌は人がつくる／04 MAGAZINE MAKES HUMAN.／05 なぜ雑誌か／06 AIRA／07 活動領域と企画例／08 三方良し／09 共同保有／10 講談社と電通が得るもの／11 バーチャルタレントとの違い／12 市場性／13 なぜMSEか／14 検討すべき論点／15 FINAL
 
 - 出力: `output/AI_ViVi_MODEL_PROJECT.pptx`
 - プレビュー: `output/preview/slide_01.png` 〜 `slide_15.png`
-- 見出し・本文・図解は編集可能なテキスト/図形。装飾（クロームタイポ、スパークル等）は `assets/gen/` のPNG。
+- デザイン: 白/黒背景＋ピンク差し色のシンプル構成。テキスト・図解・表はすべて編集可能なPowerPoint標準の図形/表。画像はAIRA写真のみ。
 
 ### 生成手順
 ```bash
-pip3 install python-pptx Pillow numpy scipy pymupdf
-python3 scripts/gen_assets.py          # 装飾PNGを assets/gen/ に生成（初回のみ。bg_01.png が無ければ自動実行）
-python3 scripts/build_presentation.py  # pptx を出力
+pip3 install python-pptx Pillow pymupdf
+python3 scripts/build_presentation.py  # pptx を出力（はみ出し推定の警告も表示）
 open output/AI_ViVi_MODEL_PROJECT.pptx
 ```
 
 ### 修正方法
-- 文言・配置・色: `scripts/build_presentation.py` の `s01()`〜`s15()` を編集して再実行（またはpptxを直接編集）。
-- AIRA画像の差し替え: `assets/aira/aira_portrait.png`（縦）/ `aira_landscape.png`（横）を同名で置き換えて再実行。縦横比は維持され、トリミングはpicture cropで行います。
-- ViVi過去表紙などは権利確認後にスライド4へ差し込んでください（現状はプレースホルダー）。
+- 文言・配置・色: `scripts/build_presentation.py` の `s01()`〜`s15()` を編集して再実行（またはpptxを直接編集）。座標は960x540ptのポイント単位。
+- AIRA画像の差し替え: `assets/aira/aira_portrait.png` を同名で置き換えて再実行。縦横比は維持され、トリミングはpicture cropで行います。
+- ViVi過去表紙などは権利確認後にスライド3・4へ差し込んでください（現状はプレースホルダー）。
+- スライド12の公開事例はH&M（Futureweek記事）のみ。出典を確認できたものだけ追記してください。
 
 ### プレビュー作成
-pptxをPDF化（PowerPoint/LibreOfficeなど）して `.tmp/deck.pdf` に置き、PyMuPDFでPNG化します（`scripts/render_preview.sh` はmacOSのPowerPoint用）。一時ファイルは `.tmp/`（git管理外）を使います。
+LibreOfficeでPDF化しPyMuPDFでPNG化します（PowerPointの自動操作は使いません）。
+```bash
+SOFFICE=/path/to/soffice scripts/render_preview.sh
+```
+一時ファイルは `.tmp/`（git管理外）に出力されます。
