@@ -6,7 +6,6 @@ import { Editor } from './components/Editor.jsx';
 import { OUTFITS, DEFAULT_OUTFIT } from './data/outfits.js';
 import { POSES, DEFAULT_POSE } from './data/poses.js';
 import { EXPRESSIONS, DEFAULT_EXPRESSION } from './avatar/expressions.js';
-import { faceCanvas } from './avatar/textures.js';
 import { BACKGROUNDS, DEFAULT_BG } from './data/backgrounds.js';
 import { parseCommand } from './chat/parser.js';
 import { loadEngine, streamReply, webgpuSupported } from './chat/llm.js';
@@ -32,7 +31,6 @@ export default function App() {
   const [outfit, setOutfit] = useState(DEFAULT_OUTFIT);
   const [pose, setPose] = useState(DEFAULT_POSE);
   const [expression, setExpression] = useState(DEFAULT_EXPRESSION);
-  const [compare, setCompare] = useState(false);
   const [bg, setBg] = useState(DEFAULT_BG);
   const [spin, setSpin] = useState(false);
   const [closeUp, setCloseUp] = useState(false);
@@ -117,19 +115,6 @@ export default function App() {
           <button type="button" className={`spin face-btn ${closeUp ? 'on' : ''}`} onClick={() => setCloseUp((c) => !c)}>
             ☺ FACE
           </button>
-          <button type="button" className={`spin compare-btn ${compare ? 'on' : ''}`} onClick={() => setCompare((c) => !c)}>
-            ▦ 4FACES
-          </button>
-          {compare && (
-            <div className="compare" role="dialog" aria-label="表情比較">
-              {EXPRESSIONS.map((e) => (
-                <figure key={e.id} className={e.id === expression ? 'on' : ''}>
-                  <img src={faceCanvas(e.id).toDataURL()} alt={e.name} />
-                  <figcaption><small>{e.en}</small>{e.name}</figcaption>
-                </figure>
-              ))}
-            </div>
-          )}
         </section>
 
         <aside className="panel">

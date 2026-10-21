@@ -52,16 +52,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 .spin.on { background: var(--pink); color: var(--white); }
 .spin.face-btn { top: 58px; }
-.spin.compare-btn { top: 104px; }
-.compare {
-  position: absolute; inset: 12px; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start;
-  padding: 8px; background: rgba(18, 13, 32, 0.92); border: 3px solid var(--pink); border-radius: 14px; overflow: auto;
-}
-.compare figure { margin: 0; align-self: start; border: 3px solid transparent; border-radius: 10px; overflow: hidden; background: #fff; }
-.compare figure.on { border-color: var(--pink); }
-.compare img { display: block; width: 100%; height: auto; }
-.compare figcaption { padding: 4px 8px; font-weight: 800; color: var(--ink); }
-.compare figcaption small { display: block; font-size: 10px; letter-spacing: .1em; color: var(--pink); }
 
 .panel { display: flex; flex-direction: column; min-height: 0; background: var(--ink-2); border-left: 3px solid var(--pink); }
 .tabs { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--ink); }
