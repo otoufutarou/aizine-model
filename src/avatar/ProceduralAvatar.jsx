@@ -107,35 +107,18 @@ const SLEEVES = {
   short: { sh: 0.062, up: [0.052, 0.06], el: 0.04, lo: [0.034, 0.03], skinLower: true },
 };
 
-// Low-poly 5-finger hand: palm + 4 fingers + thumb on the body side.
-const FINGERS = [
-  { x: -0.034, len: 0.05, tilt: 0.12 },
-  { x: -0.012, len: 0.06, tilt: 0.04 },
-  { x: 0.011, len: 0.055, tilt: -0.04 },
-  { x: 0.032, len: 0.042, tilt: -0.12 },
-];
-
+// Simple low-poly mitten hand: palm, fingers as one block, thumb.
 function Hand({ s, peace }) {
-  const R_ = 0.0125;
   return (
-    <group position={[0, -0.25, 0]}>
-      <P g="sphere" a={[1, 8, 6]} scale={[0.047, 0.05, 0.027]} c={SKIN} />
-      {FINGERS.map((f, i) => {
-        const curled = peace && i >= 2;
-        const len = curled ? f.len * 0.45 : f.len;
-        const tilt = peace && i < 2 ? (i === 0 ? 0.3 : -0.3) : f.tilt;
-        return (
-          <P
-            key={i}
-            g="capsule"
-            a={[R_, len, 3, 6]}
-            pos={[f.x * s, -0.04 - len / 2, curled ? 0.012 : 0]}
-            rot={[0, 0, tilt * s]}
-            c={SKIN}
-          />
-        );
-      })}
-      <P g="capsule" a={[0.014, 0.036, 3, 6]} pos={[-s * 0.05, -0.012, 0.008]} rot={[0, 0, -s * 0.75]} c={SKIN} />
+    <group position={[0, -0.255, 0]} scale={1.3}>
+      <P g="sphere" a={[1, 8, 6]} pos={[0, -0.02, 0]} scale={[0.044, 0.062, 0.03]} c={SKIN} />
+      <P g="sphere" a={[1, 7, 5]} pos={[-s * 0.04, -0.012, 0.006]} rot={[0, 0, -s * 0.5]} scale={[0.018, 0.032, 0.02]} c={SKIN} />
+      {peace && (
+        <>
+          <P g="capsule" a={[0.011, 0.05, 3, 6]} pos={[-0.014, -0.085, 0]} rot={[0, 0, 0.25]} c={SKIN} />
+          <P g="capsule" a={[0.011, 0.05, 3, 6]} pos={[0.014, -0.085, 0]} rot={[0, 0, -0.25]} c={SKIN} />
+        </>
+      )}
     </group>
   );
 }
