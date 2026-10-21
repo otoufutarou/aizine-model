@@ -13,7 +13,7 @@ export function normalize(text) {
     .replace(/[\u30a1-\u30f6]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
 }
 
-// ViVi style lines come first so specific words ("ミニスカ", "スポーツ") win over the classic looks' broader ones.
+// Style lines come first so specific words ("ミニスカ", "スポーツ") win over the classic looks' broader ones.
 const OUTFIT_RULES = [
   ...STYLE_IDS.map((id) => ({ id, words: STYLE_RULES[id].keywords })),
   { id: 'street', words: ['ストリート', 'カーゴ', 'スニーカー', 'ヒップホップ', 'カジュアル', 'ラフ', '初期', '元の', 'もとの', '元に'], ambiguous: ['ストリート'] },
@@ -51,7 +51,7 @@ export function parseCommand(input, rand = pick, ctx = {}) {
   if (has(n, ['ヘルプ', '使い方', 'できること', '何ができ', 'つかいかた'])) {
     return {
       actions,
-      lines: ['「ガーリーにして」「ピースして」「夜の背景」「笑って」みたいに話しかけてね！ 「デートっぽく」「秋っぽく」の気分指定や、「ViViのトレンドは？」「抜け感のコツは？」「今のコーデのポイントは？」「おすすめは？」も答えるよ♪'],
+      lines: ['「ガーリーにして」「ピースして」「夜の背景」「笑って」みたいに話しかけてね！ 「デートっぽく」「秋っぽく」の気分指定や、「トレンドは？」「抜け感のコツは？」「今のコーデのポイントは？」「おすすめは？」も答えるよ♪'],
     };
   }
 
@@ -139,14 +139,14 @@ export function parseCommand(input, rand = pick, ctx = {}) {
     lines.push(stop ? '回転ストップ！' : 'くるくる〜♪ 360°チェックしてね！');
   }
 
-  // ViVi advice: explain the current look, recommend one, or answer a styling topic
+  // Fashion advice: explain the current look, recommend one, or answer a styling topic
   if (!actions.length) {
     if (has(rest, EXPLAIN_WORDS)) {
       lines.push(explainOutfit(ctx.outfit));
     } else if (has(rest, ADVICE_WORDS)) {
       const id = rand(STYLE_IDS.filter((x) => x !== ctx.outfit));
       actions.push({ type: 'outfit', id });
-      lines.push(`ViViの4大K-COREならこれ！ ${STYLE_RULES[id].reply}`);
+      lines.push(`4大K-COREならこれ！ ${STYLE_RULES[id].reply}`);
     } else {
       const topic = TOPICS.find((t) => has(rest, t.words));
       if (topic) lines.push(topicAnswer(topic, () => Math.random()));

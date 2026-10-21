@@ -1,6 +1,6 @@
 // Outfit definitions, split into the five slots: hat / top / bottom / shoes / accessories.
 // The procedural avatar reads these; a GLB avatar toggles nodes named `<outfitId>_*` (see README).
-// The four ViVi style lines (STYLE_OUTFITS) must satisfy src/fashion/styleRules.js.
+// The four trend style lines (STYLE_OUTFITS) must satisfy src/fashion/styleRules.js.
 import { STYLE_RULES } from './styleRules.js';
 
 const HAT_ICE = { palette: ['#f9d54a', '#fbe27a', '#fff0b0', '#f7c630'], pink: '#9fd8f5' };
@@ -77,7 +77,7 @@ export const CLASSIC_OUTFITS = [
     desc: 'クロップドカーディガン×水色カーゴ×厚底スニーカー',
     swatch: ['#f5e9df', '#8db7e3', '#fadb55'],
     hat: { palette: ['#f9d54a', '#fbe27a', '#fff0b0', '#f7c630'], pink: '#ff9fb8', ear: '#fbe38a', earIn: '#ff8fae' },
-    top: { type: 'cardigan', color: '#f5e9df', accent: '#e3d3c4', emblem: 'Vivi', emblemColor: '#ff5f9a' },
+    top: { type: 'cardigan', color: '#f5e9df', accent: '#e3d3c4', emblem: 'AIRA', emblemColor: '#ff5f9a' },
     sleeve: 'wide',
     bottom: { type: 'cargo', color: '#8db7e3', light: '#b6d2ee', accent: '#ff6fa3' },
     shoes: { sole: '#f2e4d0', upper: '#fadb55', accent: '#ff6fa3' },
