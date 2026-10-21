@@ -10,6 +10,7 @@ export const DEFAULT_PERSONA = {
   ngWords: '絶対,最安,No.1,必ず痩せ,他社',
   maxLen: 90,
   maxEmoji: 2,
+  axes: { trend: 85, friendly: 70, mature: 40, edge: 65, active: 70 },
 };
 
 export const splitList = (s) => String(s ?? '').split(/[,、\n]/).map((x) => x.trim()).filter(Boolean);

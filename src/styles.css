@@ -150,3 +150,27 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .editor .hint { margin: 6px 0 0; color: var(--pink-soft); }
 .editor .note { color: var(--silver-2); font-size: 11px; margin: 0; }
 .editor input, .editor select, .editor textarea { width: 100%; min-width: 0; }
+
+.editor .steps { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.editor .steps button { flex: none; border: 1.5px solid var(--silver-2); background: transparent; color: var(--silver); border-radius: 99px; padding: 6px 12px; font-size: 12px; font-weight: 800; }
+.editor .steps button.active { background: var(--pink); border-color: var(--pink); color: var(--ink); }
+.editor .lead { margin: 0; color: var(--pink-soft); font-weight: 700; }
+.editor .primary { border: 0; background: var(--pink); color: var(--ink); font-weight: 900; border-radius: 99px; padding: 12px; }
+.editor .axis span { display: flex; justify-content: space-between; }
+.editor .axis b { color: var(--pink); }
+.editor .axis input[type=range] { padding: 0; accent-color: var(--pink); }
+.editor .axis em { display: flex; justify-content: space-between; font-style: normal; font-size: 11px; color: var(--silver-2); font-weight: 400; }
+.editor article { background: var(--ink-2); border-radius: 12px; padding: 10px 12px; border-left: 4px solid var(--silver-2); }
+.editor article.good { border-left-color: #7be0a8; } .editor article.mid { border-left-color: #ffd45f; } .editor article.low { border-left-color: #ff6b8a; }
+.editor article header { display: flex; align-items: baseline; gap: 8px; }
+.editor article h4 { margin: 0; flex: 1; font-size: 14px; }
+.editor article header > span { color: var(--pink); font-weight: 900; }
+.editor article header b { font-size: 20px; }
+.editor article header em { font-style: normal; font-size: 11px; color: var(--silver); }
+.editor .bar { height: 5px; background: var(--ink); border-radius: 9px; margin: 6px 0; overflow: hidden; }
+.editor .bar i { display: block; height: 100%; background: var(--pink); }
+.editor article p { margin: 3px 0; font-size: 12px; }
+.editor .why { color: #7be0a8; } .editor .how { color: var(--silver); } .editor .warn-line { color: #ffd45f; }
+.editor .phase ul { margin: 4px 0; padding-left: 18px; font-size: 12px; }
+.editor .phase .goal { font-weight: 800; } .editor .phase .kpi { color: var(--silver-2); }
+.editor .phase em { font-style: normal; font-size: 11px; color: var(--pink-soft); }

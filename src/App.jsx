@@ -18,7 +18,6 @@ const TABS = [
   { id: 'pose', label: 'ポーズ', en: 'POSE' },
   { id: 'face', label: '表情', en: 'FACE' },
   { id: 'bg', label: '背景', en: 'SET' },
-  { id: 'chat', label: 'チャット', en: 'CHAT' },
   { id: 'editor', label: '編集部', en: 'DESK' },
 ];
 
@@ -155,8 +154,7 @@ export default function App() {
             {tab === 'bg' && (
               <Picker items={BACKGROUNDS} value={bg} onChange={setBg} render={(b) => <Swatches colors={b.swatch} />} />
             )}
-            {tab === 'editor' && <Editor />}
-            {tab === 'chat' && <Chat messages={messages} onSend={send} ai={ai} onEnableAi={enableAi} />}
+            {tab === 'editor' && <Editor chat={<Chat messages={messages} onSend={send} ai={ai} onEnableAi={enableAi} />} />}
           </div>
         </aside>
       </main>
