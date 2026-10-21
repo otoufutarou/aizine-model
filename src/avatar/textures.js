@@ -46,8 +46,8 @@ function drawEye(ctx, cx, cy, side, expr) {
     ctx.stroke();
   } else {
     // reference style: dull half-lidded eye, iris fills the opening, lid droops toward the outer corner
-    const w = 169;
-    const h = 150;
+    const w = 220;
+    const h = 195;
     const eye = () => {
       ctx.beginPath();
       ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2);
@@ -91,8 +91,8 @@ function drawEye(ctx, cx, cy, side, expr) {
 
 function drawBrow(ctx, W, H, side) {
   // tsuri-mayu: outer end high, inner end low
-  const inner = [0.5 + side * 0.1, 0.405];
-  const outer = [0.5 + side * 0.38, 0.345];
+  const inner = [0.5 + side * 0.1, 0.445];
+  const outer = [0.5 + side * 0.38, 0.385];
   ctx.strokeStyle = '#4a3128';
   ctx.lineWidth = 6;
   ctx.lineCap = 'round';
@@ -125,8 +125,8 @@ export function faceTexture(expr = 'normal') {
     ctx.fillRect(0, 0, W, H);
     drawBrow(ctx, W, H, -1);
     drawBrow(ctx, W, H, 1);
-    drawEye(ctx, W * 0.28, H * 0.565, -1, expr);
-    drawEye(ctx, W * 0.72, H * 0.565, 1, expr);
+    drawEye(ctx, W * 0.28, H * 0.55, -1, expr);
+    drawEye(ctx, W * 0.72, H * 0.55, 1, expr);
     drawCheek(ctx, W * 0.16, H * 0.82);
     drawCheek(ctx, W * 0.68, H * 0.82);
     return toTexture(c);
