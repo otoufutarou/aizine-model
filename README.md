@@ -71,3 +71,29 @@ tests/parser.test.js
 ## 備考
 
 ロゴ・デザインはすべてオリジナルで、既存ブランドのロゴは使用していません。
+
+---
+
+## AI ViVi PROJECT 提案資料（電通出版局 社内AIハッカソン）
+
+キャッチコピー「MAGAZINE MAKES HUMAN. / 雑誌は、人をつくる。」。ViViの編集資産から生まれるAI人格 AIRA を提案する全15枚・16:9のpptxです（構想段階の企画。アーカイブ連携・出演・契約は未確定）。
+
+- 出力: `output/AI_ViVi_MODEL_PROJECT.pptx`
+- プレビュー: `output/preview/slide_01.png` 〜 `slide_15.png`
+- 見出し・本文・図解は編集可能なテキスト/図形。装飾（クロームタイポ、スパークル等）は `assets/gen/` のPNG。
+
+### 生成手順
+```bash
+pip3 install python-pptx Pillow numpy scipy pymupdf
+python3 scripts/gen_assets.py          # 装飾PNGを assets/gen/ に生成（初回のみ。bg_01.png が無ければ自動実行）
+python3 scripts/build_presentation.py  # pptx を出力
+open output/AI_ViVi_MODEL_PROJECT.pptx
+```
+
+### 修正方法
+- 文言・配置・色: `scripts/build_presentation.py` の `s01()`〜`s15()` を編集して再実行（またはpptxを直接編集）。
+- AIRA画像の差し替え: `assets/aira/aira_portrait.png`（縦）/ `aira_landscape.png`（横）を同名で置き換えて再実行。縦横比は維持され、トリミングはpicture cropで行います。
+- ViVi過去表紙などは権利確認後にスライド4へ差し込んでください（現状はプレースホルダー）。
+
+### プレビュー作成
+pptxをPDF化（PowerPoint/LibreOfficeなど）して `.tmp/deck.pdf` に置き、PyMuPDFでPNG化します（`scripts/render_preview.sh` はmacOSのPowerPoint用）。一時ファイルは `.tmp/`（git管理外）を使います。
