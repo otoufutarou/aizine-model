@@ -361,7 +361,7 @@ function Coat({ o }) {
   return <M geo={shell} c={c.color} side={DoubleSide} />;
 }
 
-export function ProceduralAvatar({ outfit, pose }) {
+export function ProceduralAvatar({ outfit, pose, expression = 'normal' }) {
   const outer = useRef();
   const rig = useRef();
   useRig(rig, outer, pose);
@@ -375,7 +375,7 @@ export function ProceduralAvatar({ outfit, pose }) {
           <Leg s={1} o={outfit} />
           <Leg s={-1} o={outfit} />
           <group name="spine" position={[0, 0.05, 0]} rotation={R('spine')}>
-            <Torso o={outfit} face={pose.face ?? 'normal'} peace={peace} />
+            <Torso o={outfit} face={expression} peace={peace} />
             <Coat o={outfit} />
           </group>
         </group>

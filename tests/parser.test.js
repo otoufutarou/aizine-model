@@ -28,3 +28,11 @@ test('combined, spin, reset, fallback', () => {
   assert.deepEqual(ids('リセット'), ['reset:undefined']);
   assert.equal(parseCommand('あいうえお').actions.length, 0);
 });
+
+test('expression keywords are independent of pose and outfit', () => {
+  assert.deepEqual(ids('笑って'), ['expression:smile']);
+  assert.deepEqual(ids('ウインクして'), ['expression:wink']);
+  assert.deepEqual(ids('クールな顔して'), ['expression:cool']);
+  assert.deepEqual(ids('ピースして'), ['pose:peace']);
+  assert.deepEqual(ids('ウインクしてピース'), ['expression:wink', 'pose:peace']);
+});

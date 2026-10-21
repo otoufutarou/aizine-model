@@ -109,7 +109,7 @@ function Props({ bg }) {
   );
 }
 
-export function Stage({ outfitId, poseId, bgId, autoRotate, closeUp }) {
+export function Stage({ outfitId, poseId, expressionId, bgId, autoRotate, closeUp }) {
   const outfit = getOutfit(outfitId);
   const pose = getPose(poseId);
   const bg = getBackground(bgId);
@@ -127,7 +127,7 @@ export function Stage({ outfitId, poseId, bgId, autoRotate, closeUp }) {
         <directionalLight position={[-3, 2, -2]} intensity={0.8} color={bg.id === 'night' ? '#38e8ff' : '#ff9fd0'} />
         <Suspense fallback={null}>
           <Props bg={bg} />
-          <Avatar outfit={outfit} pose={pose} />
+          <Avatar outfit={outfit} pose={pose} expression={expressionId} />
           {/* pedestal */}
           <mesh position={[0, -0.03, 0]} receiveShadow>
             <cylinderGeometry args={[0.85, 0.9, 0.06, 64]} />

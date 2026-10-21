@@ -1,6 +1,7 @@
 import { OUTFITS, getOutfit } from '../data/outfits.js';
 import { STYLE_IDS, STYLE_RULES } from '../fashion/styleRules.js';
 import { POSES, getPose } from '../data/poses.js';
+import { EXPRESSIONS, getExpression } from '../avatar/expressions.js';
 import { BACKGROUNDS, getBackground } from '../data/backgrounds.js';
 
 // Normalise: full/half width, case, and katakana -> hiragana so one keyword matches both.
@@ -80,10 +81,22 @@ export function parseCommand(input, rand = pick) {
     }
   }
 
+  // Expression: its phrase is removed so "クールな顔" is not read as the CITY MODE outfit
+  let rest = n;
+  for (const e of EXPRESSIONS) {
+    const hit = has(rest, e.keywords);
+    if (hit) {
+      actions.push({ type: 'expression', id: e.id });
+      lines.push(`「${getExpression(e.id).name}」の表情にしたよ！`);
+      rest = rest.replace(normalize(hit), '');
+      break;
+    }
+  }
+
   // Outfit (ambiguous words belong to the background when a background intent is present)
   for (const rule of OUTFIT_RULES) {
     const words = rule.words.filter((w) => !(bgIntent && rule.ambiguous?.includes(w)));
-    if (has(n, words)) {
+    if (has(rest, words)) {
       actions.push({ type: 'outfit', id: rule.id });
       lines.push(STYLE_RULES[rule.id]?.reply ?? `${getOutfit(rule.id).name}コーデに着替えたよ！ どう？`);
       break;
@@ -93,7 +106,7 @@ export function parseCommand(input, rand = pick) {
   // Pose (skip "ランウェイ" when it is a background request)
   for (const rule of POSE_RULES) {
     const words = rule.words.filter((w) => !(bgIntent && w === 'ランウェイ'));
-    if (has(n, words)) {
+    if (has(rest, words)) {
       actions.push({ type: 'pose', id: rule.id });
       lines.push(`「${getPose(rule.id).name}」のポーズ、決めるね！`);
       break;

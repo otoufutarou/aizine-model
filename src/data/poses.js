@@ -44,7 +44,6 @@ export const POSES = [
       thighR: [-0.08, 0, -0.1],
     },
     peace: true,
-    face: 'wink',
     y: 0,
   },
   {
@@ -74,7 +73,6 @@ export const POSES = [
       shoulderL: [0, 0, 2.5],
       elbowL: [0, 0, 0.4],
     },
-    face: 'smile',
     wave: { joint: 'elbowL', axis: 2, amp: 0.5, speed: 7 },
     y: 0,
   },

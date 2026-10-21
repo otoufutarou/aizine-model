@@ -1,4 +1,5 @@
 import { CanvasTexture, NearestFilter, RepeatWrapping, SRGBColorSpace } from 'three';
+import { BROW, CHEEK, EYE, getExpression } from './expressions.js';
 
 const SKIN = '#fbd9c4';
 const cache = new Map();
@@ -27,85 +28,92 @@ function memo(key, build) {
   return cache.get(key);
 }
 
-// Flat hand-drawn eye: tall rounded ellipse, no lashes, no shadow. side: +1 = right of canvas.
-function drawEye(ctx, cx, cy, side, expr) {
+const INK = 'round';
+
+function closedEye(ctx, side, arc) {
+  const { w, line, lineColor } = EYE;
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = line;
+  ctx.lineCap = INK;
+  ctx.beginPath();
+  ctx.moveTo(-w / 2, arc.rise * 0.28);
+  ctx.quadraticCurveTo(0, -arc.rise * 0.95, w / 2, arc.rise * 0.28);
+  ctx.stroke();
+}
+
+function openEye(ctx, side, o) {
+  const { w, h, line, lineColor } = EYE;
+  const xi = -side * (w / 2 + 2); // inner end (towards the nose line)
+  const xo = side * (w / 2 + 2); // outer end
   ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(-side * 0.08);
-  ctx.lineCap = 'round';
-  ctx.strokeStyle = '#2a1c18';
-  ctx.lineWidth = 12;
-  if (expr === 'smile') {
-    ctx.beginPath();
-    ctx.arc(0, 30, 44, Math.PI * 1.12, Math.PI * 1.88);
-    ctx.stroke();
-  } else if (expr === 'wink' && side > 0) {
-    ctx.beginPath();
-    ctx.moveTo(-44, 14);
-    ctx.lineTo(44, -6);
-    ctx.stroke();
-  } else {
-    // reference style: dull half-lidded eye, iris fills the opening, lid droops toward the outer corner
-    const w = 220;
-    const h = 195;
-    const eye = () => {
-      ctx.beginPath();
-      ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2);
-    };
-    ctx.save();
-    eye();
-    ctx.clip();
-    ctx.fillStyle = '#fffaf4';
-    ctx.fillRect(-w, -h, w * 2, h * 2);
-    ctx.fillStyle = '#4a342c';
-    ctx.beginPath();
-    ctx.ellipse(0, 4, w * 0.44, h * 0.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#1a100d';
-    ctx.beginPath();
-    ctx.ellipse(0, 6, w * 0.22, h * 0.3, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(-side * 14, 16, 10, 0, Math.PI * 2);
-    ctx.fill();
-    // heavy lid: slanted cut, outer end lower
-    ctx.fillStyle = SKIN;
-    ctx.beginPath();
-    ctx.moveTo(-w, -h);
-    ctx.lineTo(w, -h);
-    ctx.lineTo(w, -12 + side * 16);
-    ctx.lineTo(-w, -12 - side * 16);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-    ctx.strokeStyle = '#1c1210';
-    ctx.lineWidth = 12;
-    ctx.beginPath();
-    ctx.moveTo(-side * (w / 2 + 2), -30);
-    ctx.quadraticCurveTo(0, -16, side * (w / 2 + 2), 4);
-    ctx.stroke();
-  }
+  ctx.beginPath();
+  ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.fillStyle = EYE.sclera;
+  ctx.fillRect(-w, -h, w * 2, h * 2);
+  ctx.fillStyle = EYE.iris;
+  ctx.beginPath();
+  ctx.ellipse(0, o.irisY, w * 0.44, h * 0.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = EYE.pupil;
+  ctx.beginPath();
+  ctx.ellipse(0, o.irisY + 2, w * 0.22 * o.pupilScale, h * 0.3 * o.pupilScale, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = EYE.highlight;
+  ctx.beginPath();
+  ctx.arc(-side * 14, o.irisY + 12, 10, 0, Math.PI * 2);
+  ctx.fill();
+  // skin-coloured lid hides the top of the eyeball
+  ctx.fillStyle = SKIN;
+  ctx.beginPath();
+  ctx.moveTo(xi, o.lidInner);
+  ctx.quadraticCurveTo(0, o.lidCtrl, xo, o.lidOuter);
+  ctx.lineTo(xo, -h);
+  ctx.lineTo(xi, -h);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = line;
+  ctx.lineCap = INK;
+  ctx.beginPath();
+  ctx.moveTo(xi, o.lidInner);
+  ctx.quadraticCurveTo(0, o.lidCtrl, xo, o.lidOuter);
+  ctx.stroke();
+}
+
+// side: -1 = left of canvas, +1 = right of canvas.
+function drawEye(ctx, W, H, side, expr) {
+  ctx.save();
+  ctx.translate(W * EYE.cx[side > 0 ? 1 : 0], H * EYE.cy);
+  ctx.rotate(-side * EYE.tilt);
+  if (expr.eyes[side > 0 ? 'right' : 'left'] === 'closed') closedEye(ctx, side, expr.arc);
+  else openEye(ctx, side, expr.open);
   ctx.restore();
 }
 
-function drawBrow(ctx, W, H, side) {
-  // tsuri-mayu: outer end high, inner end low
-  const inner = [0.5 + side * 0.1, 0.42];
-  const outer = [0.5 + side * 0.38, 0.36];
-  ctx.strokeStyle = '#4a3128';
-  ctx.lineWidth = 9;
-  ctx.lineCap = 'round';
+// Tsuri-mayu: outer end high, inner end low. Only the angle depends on the expression.
+function drawBrow(ctx, W, H, side, expr) {
+  const closed = expr.eyes[side > 0 ? 'right' : 'left'] === 'closed';
+  const deg = closed && expr.brow.closedAngle != null ? expr.brow.closedAngle : expr.brow.angle;
+  const a = (deg * Math.PI) / 180;
+  const cx = (0.5 + side * BROW.cx) * W;
+  const cy = BROW.cy * H;
+  const dx = Math.cos(a) * BROW.half * -side;
+  const dy = Math.sin(a) * BROW.half;
+  ctx.strokeStyle = BROW.color;
+  ctx.lineWidth = BROW.line;
+  ctx.lineCap = INK;
   ctx.beginPath();
-  ctx.moveTo(inner[0] * W, inner[1] * H);
-  ctx.lineTo(outer[0] * W, outer[1] * H);
+  ctx.moveTo(cx + dx, cy + dy); // inner end, lower
+  ctx.lineTo(cx - dx, cy - dy); // outer end, higher
   ctx.stroke();
 }
 
 function drawCheek(ctx, x, y) {
-  ctx.strokeStyle = '#ff6b9a';
-  ctx.lineWidth = 9;
-  ctx.lineCap = 'round';
+  ctx.strokeStyle = CHEEK.color;
+  ctx.lineWidth = CHEEK.line;
+  ctx.lineCap = INK;
   for (let i = 0; i < 3; i += 1) {
     const sx = x + i * 17;
     ctx.beginPath();
@@ -115,22 +123,28 @@ function drawCheek(ctx, x, y) {
   }
 }
 
-export function faceTexture(expr = 'normal') {
-  return memo(`face-${expr}`, () => {
+// Eyes first, then brows on top so a lid can never hide them. No mouth or nose on any expression.
+export function faceCanvas(exprId = 'normal') {
+  return memo(`face-canvas-${exprId}`, () => {
     const W = 600;
     const H = 540;
+    const expr = getExpression(exprId);
     const c = makeCanvas(W, H);
     const ctx = c.getContext('2d');
     ctx.fillStyle = SKIN;
     ctx.fillRect(0, 0, W, H);
-    drawEye(ctx, W * 0.28, H * 0.53, -1, expr);
-    drawEye(ctx, W * 0.72, H * 0.53, 1, expr);
-    drawBrow(ctx, W, H, -1);
-    drawBrow(ctx, W, H, 1);
-    drawCheek(ctx, W * 0.16, H * 0.82);
-    drawCheek(ctx, W * 0.68, H * 0.82);
-    return toTexture(c);
+    drawEye(ctx, W, H, -1, expr);
+    drawEye(ctx, W, H, 1, expr);
+    drawBrow(ctx, W, H, -1, expr);
+    drawBrow(ctx, W, H, 1, expr);
+    drawCheek(ctx, W * CHEEK.x[0], H * CHEEK.y);
+    drawCheek(ctx, W * CHEEK.x[1], H * CHEEK.y);
+    return c;
   });
+}
+
+export function faceTexture(expr = 'normal') {
+  return memo(`face-${expr}`, () => toTexture(faceCanvas(expr)));
 }
 
 export function hatTexture(palette, pink) {
