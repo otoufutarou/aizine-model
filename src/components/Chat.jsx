@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 
 const CHIPS = ['ガーリーにして', 'モードにして', 'ピースして', '夜の背景', 'おまかせ', 'くるくる回って'];
 
-export function Chat({ messages, onSend }) {
+const AI_LABEL = {
+  off: '💬 AIとおしゃべり（β・約1GB）',
+  unsupported: 'この端末ではAIおしゃべり非対応（WebGPUなし）',
+  error: '読み込み失敗。もう一度試す',
+};
+
+export function Chat({ messages, onSend, ai, onEnableAi }) {
   const [text, setText] = useState('');
   const endRef = useRef(null);
 
@@ -28,6 +34,11 @@ export function Chat({ messages, onSend }) {
           </div>
         ))}
       </div>
+      {ai.status !== 'ready' && (
+        <button type="button" className="ai-btn" disabled={ai.status === 'loading' || ai.status === 'unsupported'} onClick={onEnableAi}>
+          {ai.status === 'loading' ? `AIを読み込み中… ${Math.round(ai.progress * 100)}%` : AI_LABEL[ai.status]}
+        </button>
+      )}
       <div className="chips">
         {CHIPS.map((c) => (
           <button key={c} type="button" onClick={() => onSend(c)}>{c}</button>

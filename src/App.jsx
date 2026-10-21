@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Stage } from './components/Stage.jsx';
 import { Picker } from './components/Picker.jsx';
 import { Chat } from './components/Chat.jsx';
@@ -8,6 +8,9 @@ import { EXPRESSIONS, DEFAULT_EXPRESSION } from './avatar/expressions.js';
 import { faceCanvas } from './avatar/textures.js';
 import { BACKGROUNDS, DEFAULT_BG } from './data/backgrounds.js';
 import { parseCommand } from './chat/parser.js';
+import { loadEngine, streamReply, webgpuSupported } from './chat/llm.js';
+import { getOutfit } from './data/outfits.js';
+import { getPose } from './data/poses.js';
 
 const TABS = [
   { id: 'outfit', label: '衣装', en: 'LOOK' },
@@ -37,8 +40,43 @@ export default function App() {
     msg('aira', 'はじめまして、AIRAだよ♡ 「ガーリーにして」「ピースして」「夜の背景」みたいに話しかけてね！'),
   ]);
 
+  const [ai, setAi] = useState({ status: webgpuSupported() ? 'off' : 'unsupported', progress: 0 });
+  const engine = useRef(null);
+  const history = useRef([]);
+
+  const enableAi = useCallback(async () => {
+    setAi({ status: 'loading', progress: 0 });
+    try {
+      engine.current = await loadEngine((progress) => setAi({ status: 'loading', progress }));
+      setAi({ status: 'ready', progress: 1 });
+      setMessages((m) => [...m, msg('aira', 'おしゃべりモードON♡ 好きなこと話しかけてね！（着替えは今までどおり「ガーリーにして」でOK）')]);
+    } catch {
+      setAi({ status: 'error', progress: 0 });
+    }
+  }, []);
+
+  const chatWithAi = useCallback(async (text) => {
+    const id = nextId++;
+    setMessages((m) => [...m, { id, from: 'aira', text: '…' }]);
+    history.current.push({ role: 'user', content: text });
+    const set = (t) => setMessages((m) => m.map((x) => (x.id === id ? { ...x, text: t } : x)));
+    try {
+      const out = await streamReply(engine.current, history.current, { outfitName: getOutfit(outfit).name, poseName: getPose(pose).name }, set);
+      history.current.push({ role: 'assistant', content: out });
+      if (!out) set('えへへ、もう一回言って？');
+    } catch {
+      history.current.pop();
+      set('ごめん、うまく答えられなかった…。もう一回言ってみて！');
+    }
+  }, [outfit, pose]);
+
   const send = useCallback((text) => {
-    const { actions, lines } = parseCommand(text, undefined, { outfit });
+    const { actions, lines, unknown } = parseCommand(text, undefined, { outfit });
+    if (unknown && ai.status === 'ready') {
+      setMessages((m) => [...m, msg('user', text)]);
+      chatWithAi(text);
+      return;
+    }
     actions.forEach((a) => {
       if (a.type === 'outfit') setOutfit(a.id);
       if (a.type === 'pose') setPose(a.id);
@@ -54,7 +92,7 @@ export default function App() {
       }
     });
     setMessages((m) => [...m, msg('user', text), ...lines.map((l) => msg('aira', l))]);
-  }, [outfit]);
+  }, [outfit, ai.status, chatWithAi]);
 
   return (
     <div className="app">
@@ -115,7 +153,7 @@ export default function App() {
             {tab === 'bg' && (
               <Picker items={BACKGROUNDS} value={bg} onChange={setBg} render={(b) => <Swatches colors={b.swatch} />} />
             )}
-            {tab === 'chat' && <Chat messages={messages} onSend={send} />}
+            {tab === 'chat' && <Chat messages={messages} onSend={send} ai={ai} onEnableAi={enableAi} />}
           </div>
         </aside>
       </main>

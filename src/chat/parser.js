@@ -153,12 +153,16 @@ export function parseCommand(input, rand = pick, ctx = {}) {
     }
   }
 
+  let unknown = false;
   if (!actions.length && !lines.length) {
     if (has(n, ['ありがとう', 'ありがと', 'さんきゅ'])) lines.push('えへへ、うれしい♡ ほかのコーデも試してみて！');
     else if (has(n, ['名前', 'だれ', '誰', '自己紹介'])) lines.push('AIRA、20歳のバーチャルモデルだよ。ファッションが大好き！ よろしくね♡');
     else if (has(n, ['おはよう', 'こんばんは'])) lines.push('やっほー！ 今日はどんなコーデにする？');
-    else lines.push('うーん、まだ分からないみたい…。「ガーリーにして」「ピースして」「夜の背景」みたいに言ってみてね！');
+    else {
+      unknown = true;
+      lines.push('うーん、まだ分からないみたい…。「ガーリーにして」「ピースして」「夜の背景」みたいに言ってみてね！');
+    }
   }
 
-  return { actions, lines };
+  return { actions, lines, unknown };
 }

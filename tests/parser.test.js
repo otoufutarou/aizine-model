@@ -49,3 +49,8 @@ test('ViVi knowledge: moods, advice and explanations', () => {
   assert.equal(rec.actions[0].type, 'outfit');
   assert.notEqual(rec.actions[0].id, 'kstreet');
 });
+
+test('unknown small talk is flagged so an optional AI can answer', () => {
+  assert.equal(parseCommand('昨日カフェに行ったよ').unknown, true);
+  assert.equal(parseCommand('ガーリーにして').unknown, false);
+});

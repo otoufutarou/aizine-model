@@ -127,3 +127,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .layout { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
   .panel { border-top: 0; border-left: 3px solid var(--pink); }
 }
+
+.ai-btn { border: 2px dashed var(--pink); background: transparent; color: var(--white); font-weight: 800; border-radius: 12px; padding: 8px 12px; }
+.ai-btn:disabled { opacity: 0.6; }
