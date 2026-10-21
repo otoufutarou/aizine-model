@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Stage } from './components/Stage.jsx';
 import { Picker } from './components/Picker.jsx';
 import { Chat } from './components/Chat.jsx';
+import { Editor } from './components/Editor.jsx';
 import { OUTFITS, DEFAULT_OUTFIT } from './data/outfits.js';
 import { POSES, DEFAULT_POSE } from './data/poses.js';
 import { EXPRESSIONS, DEFAULT_EXPRESSION } from './avatar/expressions.js';
@@ -18,6 +19,7 @@ const TABS = [
   { id: 'face', label: '表情', en: 'FACE' },
   { id: 'bg', label: '背景', en: 'SET' },
   { id: 'chat', label: 'チャット', en: 'CHAT' },
+  { id: 'editor', label: '編集部', en: 'DESK' },
 ];
 
 const Swatches = ({ colors }) => (
@@ -153,6 +155,7 @@ export default function App() {
             {tab === 'bg' && (
               <Picker items={BACKGROUNDS} value={bg} onChange={setBg} render={(b) => <Swatches colors={b.swatch} />} />
             )}
+            {tab === 'editor' && <Editor />}
             {tab === 'chat' && <Chat messages={messages} onSend={send} ai={ai} onEnableAi={enableAi} />}
           </div>
         </aside>
