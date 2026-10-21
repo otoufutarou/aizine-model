@@ -333,7 +333,7 @@ def s02():
           "新しいAI人格が生まれる。", "",
           [("誌面・記事・トレンド・編集の視点。", {"size": 15, "bold": False})],
           [("その人格が、雑誌と人を、もう一度つなぐ。", {"size": 15, "bold": False})]],
-      ix + 6, iy + 6, iw - 12, ih - 12, size=22, color=BLACK, lh=1.4)
+      ix + 6, iy + 6, iw - 12, ih - 12, size=20, color=BLACK, lh=1.3)
     nodes = {"A": (1480, 300, PINK, WHITE, "HUMAN", "編集部・読者"),
              "B": (1740, 790, YELLOW, BLACK, "MAGAZINE", "編集資産"),
              "C": (1230, 790, LIME, BLACK, "AI HUMAN", "AI人格 AIRA")}
