@@ -2,6 +2,7 @@ import { OUTFITS, getOutfit } from '../data/outfits.js';
 import { STYLE_IDS, STYLE_RULES } from '../fashion/styleRules.js';
 import { POSES, getPose } from '../data/poses.js';
 import { EXPRESSIONS, getExpression } from '../avatar/expressions.js';
+import { TOPICS, SCENES, EXPLAIN_WORDS, ADVICE_WORDS, explainOutfit, topicAnswer } from '../fashion/knowledge.js';
 import { BACKGROUNDS, getBackground } from '../data/backgrounds.js';
 
 // Normalise: full/half width, case, and katakana -> hiragana so one keyword matches both.
@@ -35,11 +36,12 @@ const BG_RULES = [
   { id: 'dream', words: ['ドリーム', '夢', 'ゆめ', '星', '宇宙', 'パステル', '紫'], strong: ['ドリーム', '宇宙', '星空'] },
 ];
 
+const ASKING_WORDS = ['コツ', 'こつ', '教えて', 'とは', 'って何', 'ってなに', 'どうすれ', 'ポイント', 'アドバイス', 'ヒント', '?'];
 const BG_INTENT = ['背景', 'バック', '場所', '景色', '舞台', 'ステージ', '空間'];
 const has = (n, words) => words.find((w) => n.includes(normalize(w)));
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-export function parseCommand(input, rand = pick) {
+export function parseCommand(input, rand = pick, ctx = {}) {
   const raw = input.trim();
   const n = normalize(raw);
   const actions = [];
@@ -49,7 +51,7 @@ export function parseCommand(input, rand = pick) {
   if (has(n, ['ヘルプ', '使い方', 'できること', '何ができ', 'つかいかた'])) {
     return {
       actions,
-      lines: ['「ガーリーにして」「ピースして」「夜の背景」みたいに話しかけてね！ 「おまかせ」「くるくる回って」「リセット」も使えるよ♪'],
+      lines: ['「ガーリーにして」「ピースして」「夜の背景」「笑って」みたいに話しかけてね！ 「デートっぽく」「秋っぽく」の気分指定や、「ViViのトレンドは？」「抜け感のコツは？」「今のコーデのポイントは？」「おすすめは？」も答えるよ♪'],
     };
   }
 
@@ -93,6 +95,15 @@ export function parseCommand(input, rand = pick) {
     }
   }
 
+  // Styling questions ("差し色のコツは？") get advice instead of an outfit change
+  if (has(rest, ASKING_WORDS)) {
+    const topic = TOPICS.find((t) => has(rest, t.words));
+    if (topic) {
+      lines.push(topicAnswer(topic, () => Math.random()));
+      return { actions, lines };
+    }
+  }
+
   // Outfit (ambiguous words belong to the background when a background intent is present)
   for (const rule of OUTFIT_RULES) {
     const words = rule.words.filter((w) => !(bgIntent && rule.ambiguous?.includes(w)));
@@ -100,6 +111,15 @@ export function parseCommand(input, rand = pick) {
       actions.push({ type: 'outfit', id: rule.id });
       lines.push(STYLE_RULES[rule.id]?.reply ?? `${getOutfit(rule.id).name}コーデに着替えたよ！ どう？`);
       break;
+    }
+  }
+
+  // Mood / occasion -> outfit (only when no explicit outfit was requested)
+  if (!actions.some((x) => x.type === 'outfit')) {
+    const scene = SCENES.find((sc) => has(rest, sc.words));
+    if (scene && !bgIntent) {
+      actions.push({ type: 'outfit', id: scene.outfit });
+      lines.push(scene.reply);
     }
   }
 
@@ -119,7 +139,21 @@ export function parseCommand(input, rand = pick) {
     lines.push(stop ? '回転ストップ！' : 'くるくる〜♪ 360°チェックしてね！');
   }
 
+  // ViVi advice: explain the current look, recommend one, or answer a styling topic
   if (!actions.length) {
+    if (has(rest, EXPLAIN_WORDS)) {
+      lines.push(explainOutfit(ctx.outfit));
+    } else if (has(rest, ADVICE_WORDS)) {
+      const id = rand(STYLE_IDS.filter((x) => x !== ctx.outfit));
+      actions.push({ type: 'outfit', id });
+      lines.push(`ViViの4大K-COREならこれ！ ${STYLE_RULES[id].reply}`);
+    } else {
+      const topic = TOPICS.find((t) => has(rest, t.words));
+      if (topic) lines.push(topicAnswer(topic, () => Math.random()));
+    }
+  }
+
+  if (!actions.length && !lines.length) {
     if (has(n, ['ありがとう', 'ありがと', 'さんきゅ'])) lines.push('えへへ、うれしい♡ ほかのコーデも試してみて！');
     else if (has(n, ['名前', 'だれ', '誰', '自己紹介'])) lines.push('AIRA、20歳のバーチャルモデルだよ。ファッションが大好き！ よろしくね♡');
     else if (has(n, ['おはよう', 'こんばんは'])) lines.push('やっほー！ 今日はどんなコーデにする？');

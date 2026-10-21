@@ -38,7 +38,7 @@ export default function App() {
   ]);
 
   const send = useCallback((text) => {
-    const { actions, lines } = parseCommand(text);
+    const { actions, lines } = parseCommand(text, undefined, { outfit });
     actions.forEach((a) => {
       if (a.type === 'outfit') setOutfit(a.id);
       if (a.type === 'pose') setPose(a.id);
@@ -54,7 +54,7 @@ export default function App() {
       }
     });
     setMessages((m) => [...m, msg('user', text), ...lines.map((l) => msg('aira', l))]);
-  }, []);
+  }, [outfit]);
 
   return (
     <div className="app">
