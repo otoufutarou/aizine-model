@@ -2,7 +2,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif; }
 .top { padding: 14px 16px 8px; border-bottom: 2px solid var(--ink); position: sticky; top: 0; background: var(--paper); z-index: 5; }
-.top h1 { margin: 0; font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-size: 26px; letter-spacing: .15em; }
+.top h1 { margin: 0; font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-size: 26px; letter-spacing: .05em; }
 .top small { font-size: 11px; margin-left: 10px; letter-spacing: .05em; color: var(--mute); font-family: sans-serif; }
 main { max-width: 640px; margin: 0 auto; padding: 12px 14px 90px; }
 .tabs { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--paper); border-top: 2px solid var(--ink); padding-bottom: env(safe-area-inset-bottom); }
