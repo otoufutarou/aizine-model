@@ -11,12 +11,13 @@ export const parseKey = (k) => { const [y, m, d] = k.split('-').map(Number); ret
 export const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
 export const toMin = (hhmm) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; };
 export const toHHMM = (min) => `${pad(Math.floor(min / 60))}:${pad(min % 60)}`;
+export const fmtDur = (min) => (min >= 60 ? `${Math.floor(min / 60)}時間${min % 60 ? `${min % 60}分` : ''}` : `${min}分`);
 
-// 終日扱い（時刻なし）の予定は空き時間計算では一日を埋めるものとして扱う
+const evRange = (e) => [toMin(e.start), e.end ? toMin(e.end) : toMin(e.start) + 60];
+
+// 時刻なしの予定は空き時間計算では一日を埋めるものとして扱う
 export function findGaps(dayEvents, { start = DAY_START, end = DAY_END, min = MIN_GAP } = {}) {
-  const busy = dayEvents
-    .map((e) => (e.start ? [toMin(e.start), e.end ? toMin(e.end) : toMin(e.start) + 60] : [start, end]))
-    .sort((a, b) => a[0] - b[0]);
+  const busy = dayEvents.map((e) => (e.start ? evRange(e) : [start, end])).sort((a, b) => a[0] - b[0]);
   const gaps = [];
   let cur = start;
   for (const [s, e] of busy) {
@@ -28,7 +29,7 @@ export function findGaps(dayEvents, { start = DAY_START, end = DAY_END, min = MI
 }
 
 const MOMENTS = [
-  { tag: 'gift', re: /会食|ディナー|ランチ会|お呼ばれ|訪問|挨拶|ホームパーティ|飲み会/ },
+  { tag: 'gift', re: /会食|ディナー|お呼ばれ|訪問|挨拶|ホームパーティ/ },
   { tag: 'birthday', re: /誕生日|バースデー|記念日/ },
   { tag: 'beach', re: /海|ビーチ|サーフ|BBQ|バーベキュー/ },
   { tag: 'date', re: /デート/ },
@@ -36,56 +37,76 @@ const MOMENTS = [
 ];
 export const detectMoments = (title = '') => MOMENTS.filter((m) => m.re.test(title)).map((m) => m.tag);
 
+// 予定の色分け用カテゴリ
+const CATS = [
+  ['date', /デート/], ['beach', /海|ビーチ|BBQ|サーフ/], ['party', /会食|ディナー|誕生日|飲み会|パーティ/],
+  ['work', /会議|ミーティング|打ち合わせ|打合せ|出張|面談/], ['beauty', /美容|ネイル|エステ/], ['trip', /旅/], ['lunch', /ランチ/],
+];
+export const categoryOf = (title = '') => (CATS.find(([, re]) => re.test(title)) || ['other'])[0];
+
 const score = (item, tags) => item.tags.filter((t) => tags.includes(t)).length;
 
 // variant で同条件の候補をローテーションし、「違う」を押した後に新しい提案を出せるようにする
-function pick(archive, { kind, slot, tags = [], exclude = new Set(), variant = 0 }) {
+function pick(archive, { kind, slot, tags = [], exclude = new Set(), variant = 0, maxMin, onlyTag, notTag }) {
   const pool = archive
-    .filter((a) => a.kind === kind && !exclude.has(a.id) && (!slot || a.slot === slot || a.slot === 'any'))
+    .filter((a) => a.kind === kind && !exclude.has(a.id)
+      && (!slot || a.slot === slot || a.slot === 'any')
+      && (!maxMin || !a.minutes || a.minutes <= maxMin)
+      && (!onlyTag || a.tags.includes(onlyTag)) && (!notTag || !a.tags.includes(notTag)))
     .map((a) => ({ a, s: score(a, tags) }))
     .sort((x, y) => y.s - x.s || x.a.id.localeCompare(y.a.id));
-  if (!pool.length) return null;
-  return pool[variant % pool.length].a;
+  return pool.length ? pool[variant % pool.length].a : null;
 }
 
 const slotOf = (min) => (min < 11 * 60 ? 'morning' : min < 14 * 60 ? 'lunch' : min < 17 * 60 ? 'afternoon' : min < 20 * 60 ? 'evening' : 'night');
 
-function gapCard(date, gap, archive, variant, eventsToday) {
-  const slot = slotOf(gap.start + Math.min(60, (gap.end - gap.start) / 2));
-  const tags = eventsToday.flatMap((e) => detectMoments(e.title));
-  const item = pick(archive, { kind: 'spot', slot, tags, variant, exclude: new Set() });
+function gapCard(date, gap, archive, variant, dayEvents, used) {
+  const len = gap.end - gap.start;
+  const slot = slotOf(gap.start + Math.min(60, len / 2));
+  const tags = dayEvents.flatMap((e) => detectMoments(e.title));
+  const item = pick(archive, { kind: 'spot', slot, tags, variant, exclude: used, maxMin: len, notTag: 'event' })
+    || pick(archive, { kind: 'spot', tags, variant, exclude: used, maxMin: len, notTag: 'event' });
   if (!item) return null;
-  return {
-    id: `gap-${dateKey(date)}-${gap.start}-${item.id}`, type: 'gap', date: dateKey(date), item,
-    label: `${toHHMM(gap.start)}–${toHHMM(gap.end)} の空き時間`,
-    reason: '予定と予定のあいだ、ちょうどいい時間があります。',
-  };
+  used.add(item.id);
+  return { id: `gap-${dateKey(date)}-${gap.start}-${item.id}`, type: 'gap', date: dateKey(date), item, gap, label: `${toHHMM(gap.start)}–${toHHMM(gap.end)}（${fmtDur(len)}）の空き`, reason: '予定のあいだ、ちょうどいい時間です。' };
+}
+
+function eventCard(date, archive, variant, used) {
+  const item = pick(archive, { kind: 'spot', onlyTag: 'event', variant, exclude: used });
+  if (!item) return null;
+  used.add(item.id);
+  return { id: `event-${dateKey(date)}-${item.id}`, type: 'event', date: dateKey(date), item, label: item.when || 'イベント', reason: 'あなたの予定の近くで開催されます。' };
 }
 
 function dayPlanCard(date, archive, variant) {
   const used = new Set();
   const stops = [];
   for (const [slot, time] of [['morning', 9 * 60 + 30], ['lunch', 12 * 60], ['afternoon', 15 * 60], ['evening', 19 * 60]]) {
-    const it = pick(archive, { kind: 'spot', slot, exclude: used, variant });
+    const it = pick(archive, { kind: 'spot', slot, exclude: used, variant, notTag: 'event' });
     if (it) { used.add(it.id); stops.push({ time: toHHMM(time), item: it }); }
   }
   if (!stops.length) return null;
-  return {
-    id: `plan-${dateKey(date)}-${variant}`, type: 'dayplan', date: dateKey(date), stops,
-    label: '一日まるごとプラン', reason: '予定のない日。編集部がまるごと一日を組みました。',
-  };
+  return { id: `plan-${dateKey(date)}-${variant}`, type: 'dayplan', date: dateKey(date), stops, label: '一日まるごとプラン', reason: '予定のない日。編集部が一日を組みました。' };
 }
 
-function momentCards(date, ev, archive, variant) {
+// 既存の予定を「もっと良く」する準備提案
+function prepCards(date, ev, archive, variant) {
   const out = [];
   const moments = detectMoments(ev.title);
-  const make = (kind, tag, reason) => {
-    const item = pick(archive, { kind, tags: [tag], variant });
-    if (item) out.push({ id: `moment-${ev.id}-${item.id}`, type: 'moment', date: dateKey(date), item, label: `「${ev.title}」に`, reason, eventId: ev.id, tags: item.tags });
+  const add = (kind, tag, label, reason, n, extra = {}) => {
+    const used = new Set();
+    for (let i = 0; i < n; i++) {
+      const item = pick(archive, { kind, tags: [tag], variant: variant + i, exclude: used, ...extra });
+      if (!item) break;
+      used.add(item.id);
+      out.push({ id: `prep-${ev.id}-${item.id}`, type: 'prep', date: dateKey(date), item, eventId: ev.id, label, reason });
+    }
   };
-  if (moments.includes('gift')) make('gift', 'gift', '手ぶらで行かないための、手土産の提案です。');
-  if (moments.includes('birthday')) make('gift', 'birthday', '特別な日に添える贈り物。');
-  if (moments.includes('beach')) make('goods', 'beach', '海の日に持っていきたいもの。');
+  const t = `「${ev.title}」`;
+  if (moments.includes('gift')) add('gift', 'gift', `${t}の準備`, '手ぶらで行かないための手土産。', 2);
+  if (moments.includes('birthday')) add('gift', 'birthday', `${t}の準備`, '特別な日に添える贈り物。', 1);
+  if (moments.includes('beach')) add('goods', 'beach', `${t}の準備`, '日差しと砂への備え。', 3);
+  if (moments.includes('date')) add('spot', 'date', `${t}をもっと良く`, '前後に足すと、デートが締まる一軒。', 1, { slot: 'evening', notTag: 'event' });
   return out;
 }
 
@@ -101,56 +122,75 @@ function farCards(today, events, archive, variant) {
   return out;
 }
 
+const tagsOf = (c) => c.item?.tags || c.stops?.flatMap((s) => s.item.tags) || [];
+
 export function pickAd(ads, prevTags, seen = new Set(), n = 0) {
-  const pool = ads.filter((a) => !seen.has(a.id));
-  const list = pool.length ? pool : ads;
-  const ranked = [...list].sort((a, b) => score(b, prevTags) - score(a, prevTags) || a.id.localeCompare(b.id));
+  const list = ads.filter((a) => !seen.has(a.id));
+  const pool = list.length ? list : ads;
+  const ranked = [...pool].sort((a, b) => score(b, prevTags) - score(a, prevTags) || a.id.localeCompare(b.id));
   return ranked[n % ranked.length] || null;
 }
+const adCard = (ad, key) => ({ id: `ad-${ad.id}-${key}`, type: 'ad', ad, label: 'PR', reason: 'スポンサー提供' });
 
 export function injectAds(cards, ads, every = AD_EVERY) {
   const out = [];
   const seen = new Set();
-  let content = 0;
-  for (const c of cards) {
+  cards.forEach((c, i) => {
     out.push(c);
-    content++;
-    if (content % every === 0) {
-      const tags = c.item?.tags || c.stops?.flatMap((s) => s.item.tags) || [];
-      const ad = pickAd(ads, tags, seen, content / every);
-      if (ad) { seen.add(ad.id); out.push({ id: `ad-${ad.id}-${content}`, type: 'ad', ad, label: 'PR', reason: 'スポンサー提供' }); }
+    if ((i + 1) % every === 0) {
+      const ad = pickAd(ads, tagsOf(c), seen, (i + 1) / every);
+      if (ad) { seen.add(ad.id); out.push(adCard(ad, i)); }
     }
-  }
+  });
   return out;
 }
 
-// 編集部エージェント：特定の日の予定ごとの提案（カレンダー画面で使う）
-export function agentForDay(date, events, archive, ads, variant = 0) {
-  const dayEvents = events.filter((e) => e.date === dateKey(date));
-  const cards = dayEvents.flatMap((e) => momentCards(date, e, archive, variant));
-  if (!dayEvents.length) { const p = dayPlanCard(date, archive, variant); if (p) cards.push(p); }
-  else for (const g of findGaps(dayEvents)) { const c = gapCard(date, g, archive, variant, dayEvents); if (c) cards.push(c); }
-  if (cards.length) {
-    const tags = cards.flatMap((c) => c.item?.tags || c.stops?.flatMap((s) => s.item.tags) || []);
-    const ad = pickAd(ads, tags);
-    if (ad) cards.push({ id: `ad-${ad.id}-${dateKey(date)}`, type: 'ad', ad, label: 'PR', reason: 'スポンサー提供' });
+// 1日ビュー：予定と空き時間提案を時系列に並べる。予定ごとの準備提案は row.prep に入る
+export function dayTimeline(date, events, archive, ads, variant = 0) {
+  const k = dateKey(date);
+  const dayEvents = events.filter((e) => e.date === k);
+  const rows = [];
+  if (!dayEvents.length) {
+    const p = dayPlanCard(date, archive, variant);
+    if (p) rows.push({ type: 'dayplan', start: DAY_START, card: p });
+  } else {
+    const used = new Set();
+    for (const e of dayEvents) rows.push({ type: 'event', start: e.start ? toMin(e.start) : -1, e, prep: prepCards(date, e, archive, variant) });
+    for (const g of findGaps(dayEvents)) {
+      const c = gapCard(date, g, archive, variant, dayEvents, used);
+      if (c) rows.push({ type: 'gap', start: g.start, card: c });
+    }
   }
-  return cards;
+  rows.sort((a, b) => a.start - b.start);
+  const tags = rows.flatMap((r) => (r.card ? tagsOf(r.card) : []));
+  const ad = rows.length ? pickAd(ads, tags) : null;
+  return { rows, ad: ad ? adCard(ad, k) : null };
 }
 
-// 提案タブのデッキ生成：今日から 14 日分 + 2か月先
-export function generateDeck({ events, today, archive, ads, variant = 0, horizon = 14 }) {
+// 提案タブ「おでかけ」：予定を踏まえた お店・イベント・一日プラン・2か月先
+export function outingDeck({ events, today, archive, ads, variant = 0, horizon = 10 }) {
   const cards = [];
   for (let i = 0; i < horizon; i++) {
     const date = addDays(today, i);
     const dayEvents = events.filter((e) => e.date === dateKey(date));
+    const used = new Set();
     if (!dayEvents.length) {
-      if (i % 3 === 0) { const p = dayPlanCard(date, archive, variant + i); if (p) cards.push(p); }
-      continue;
+      const p = dayPlanCard(date, archive, variant + i);
+      if (p) cards.push(p);
+    } else {
+      for (const g of findGaps(dayEvents)) { const c = gapCard(date, g, archive, variant + i, dayEvents, used); if (c) cards.push(c); }
     }
-    cards.push(...dayEvents.flatMap((e) => momentCards(date, e, archive, variant)));
-    for (const g of findGaps(dayEvents)) { const c = gapCard(date, g, archive, variant + i, dayEvents); if (c) cards.push(c); }
+    if (i % 2 === 1) { const c = eventCard(date, archive, variant + i, new Set()); if (c) cards.push(c); }
   }
-  cards.push(...farCards(today, events, archive, variant));
+  return injectAds([...cards.slice(0, 14), ...farCards(today, events, archive, variant)], ads);
+}
+
+// 提案タブ「予定をもっと良く」：会食→手土産、海→サングラスなど
+export function prepDeck({ events, today, archive, ads, variant = 0, horizon = 21 }) {
+  const cards = [];
+  for (let i = 0; i < horizon; i++) {
+    const date = addDays(today, i);
+    for (const e of events.filter((x) => x.date === dateKey(date))) cards.push(...prepCards(date, e, archive, variant));
+  }
   return injectAds(cards, ads);
 }

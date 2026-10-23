@@ -2,19 +2,23 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#fffaf0" />
-    <title>Mag L!fe — 編集部つきカレンダー</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>Mag L!fe</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="top"><h1>Mag L!fe<small>編集部つきカレンダー</small></h1></header>
-    <main id="view"></main>
-    <nav class="tabs">
-      <button data-tab="calendar" class="on">📅 カレンダー</button>
-      <button data-tab="suggest">✨ 提案</button>
-      <button data-tab="saved">♥ 保存</button>
-    </nav>
+    <div class="phone">
+      <header class="top"><h1 class="logo">Mag L<span>!</span>fe</h1><span class="tag">編集部つきカレンダー</span></header>
+      <main id="view"></main>
+      <nav class="tabs">
+        <button data-tab="calendar" class="on"><i>📅</i>カレンダー</button>
+        <button data-tab="suggest"><i>✨</i>提案</button>
+        <button data-tab="saved"><i>♥</i>保存</button>
+      </nav>
+      <div id="sheet" class="sheet" hidden></div>
+      <div id="toast" class="toast" hidden></div>
+    </div>
     <script type="module" src="app.js"></script>
   </body>
 </html>

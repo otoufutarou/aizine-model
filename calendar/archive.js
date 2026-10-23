@@ -14,6 +14,10 @@ export const ARCHIVE = [
   { id: 'a11', mag: 'POPEYE', issue: '銭湯特集', kind: 'spot', slot: 'night', tags: ['relax', 'solo'], emoji: '♨️', title: '一日の終わりに銭湯とコーヒー牛乳', body: 'サウナ後の外気浴まで含めて90分。', area: '蒲田', minutes: 90 },
   { id: 'a12', mag: 'BRUTUS', issue: '美術館特集', kind: 'spot', slot: 'afternoon', tags: ['art', 'date', 'solo'], emoji: '🖼️', title: '小さな美術館で一点だけじっくり観る', body: '常設の一点に絞ると、帰り道まで余韻が残る。', area: '清澄白河', minutes: 90 },
 
+  { id: 'e01', mag: 'BRUTUS', issue: '今月のアート', kind: 'spot', slot: 'afternoon', tags: ['event', 'art', 'date'], emoji: '🎨', title: '【開催中】現代の器展 ― 手で使う、日々のうつわ', body: '作家20人の新作を手に取れる展示即売。会期は今月末まで。', area: '代官山', minutes: 60, when: '今月末まで開催' },
+  { id: 'e02', mag: 'POPEYE', issue: 'この秋のマーケット', kind: 'spot', slot: 'lunch', tags: ['event', 'food', 'park'], emoji: '🎪', title: '【週末】青空ブックマーケット＆コーヒー', body: '古本と焙煎所が集まる公園マーケット。雨天中止。', area: '駒沢公園', minutes: 90, when: '土日開催' },
+  { id: 'e03', mag: 'dancyu', issue: '秋の酒と食', kind: 'spot', slot: 'evening', tags: ['event', 'food', 'wine'], emoji: '🍶', title: '【夜限定】日本酒と小皿の立ち飲みイベント', body: '蔵元が来場して直接注いでくれる。チケット制・当日券あり。', area: '中目黒', minutes: 90, when: '今週末 18時〜' },
+
   { id: 'g01', mag: 'dancyu', issue: '手土産特集', kind: 'gift', slot: 'any', tags: ['gift', 'sweets'], emoji: '🍪', title: '日持ちする焼き菓子の詰め合わせ', body: '個包装で分けやすい。年上の方にも間違いのない一箱。', area: '手土産', minutes: 0 },
   { id: 'g02', mag: 'dancyu', issue: '手土産特集', kind: 'gift', slot: 'any', tags: ['gift', 'wine'], emoji: '🍾', title: '自然派ワインとチーズのセット', body: '会食の後半に開けてもらえる、少し遊びのある手土産。', area: '手土産', minutes: 0 },
   { id: 'g03', mag: 'BRUTUS', issue: '手土産特集', kind: 'gift', slot: 'any', tags: ['gift', 'tea'], emoji: '🍵', title: '産地で選ぶ煎茶のミニ缶', body: '重くならず、相手の好みを選ばない。小さな栞つき。', area: '手土産', minutes: 0 },
@@ -24,12 +28,12 @@ export const ARCHIVE = [
   { id: 'b02', mag: 'POPEYE', issue: '海へ行こう', kind: 'goods', slot: 'any', tags: ['beach'], emoji: '🧺', title: '砂がつかないレジャーシートとカゴ', body: 'はたくだけで砂が落ちる。帰りの車内が汚れない。', area: '海のもの', minutes: 0 },
   { id: 'b03', mag: 'VOCE', issue: '夏の紫外線対策', kind: 'goods', slot: 'any', tags: ['beach', 'beauty'], emoji: '🧴', title: '汗・水に強い日焼け止めとリップ', body: '塗り直しが楽なスティックタイプ。リップのUVも忘れずに。', area: '海のもの', minutes: 0 },
 
-  { id: 't01', mag: 'BRUTUS', issue: '温泉と宿特集', kind: 'trip', slot: 'any', tags: ['trip', 'onsen'], emoji: '♨️', title: '2泊3日、箱根で「何もしない」', body: '朝は川沿いを散歩、昼は蕎麦、夜は部屋で本。宿は2〜3か月前が狙い目。', area: '箱根', minutes: 0, lead: 60 },
-  { id: 't02', mag: 'POPEYE', issue: '島へ行く', kind: 'trip', slot: 'any', tags: ['trip', 'sea'], emoji: '🏝️', title: '週末、瀬戸内の島を自転車で', body: 'フェリーで渡って、島のカフェとミカン畑を巡る1泊2日。', area: '瀬戸内', minutes: 0, lead: 60 },
-  { id: 't03', mag: 'dancyu', issue: '食べ歩き特集', kind: 'trip', slot: 'any', tags: ['trip', 'food'], emoji: '🍣', title: '金沢で市場と寿司をはしご', body: '朝は近江町市場、夜はカウンター。新幹線で日帰りも可能。', area: '金沢', minutes: 0, lead: 60 },
-  { id: 'd01', mag: 'BRUTUS', issue: 'デート特集', kind: 'date', slot: 'any', tags: ['date', 'art'], emoji: '💑', title: '美術館→喫茶→ビストロの王道デート', body: '14時に美術館、16時に喫茶、19時にカウンターのビストロ。予約は1か月前から。', area: '清澄白河→恵比寿', minutes: 0, lead: 60 },
-  { id: 'd02', mag: 'POPEYE', issue: 'デート特集', kind: 'date', slot: 'any', tags: ['date', 'park'], emoji: '🚲', title: '公園とレコード店を歩く昼デート', body: 'パンを買って公園で食べ、レコード屋を冷かす。歩きやすい靴で。', area: '代々木', minutes: 0, lead: 60 },
-  { id: 'd03', mag: 'VOCE', issue: '記念日特集', kind: 'date', slot: 'any', tags: ['date', 'beauty'], emoji: '💐', title: '記念日はホテルのアフタヌーンティーで', body: '二か月前に予約開始の店が多い。服はいつもより少し綺麗めに。', area: '丸の内', minutes: 0, lead: 60 },
+  { id: 't01', mag: 'BRUTUS', issue: '温泉と宿特集', kind: 'trip', slot: 'any', tags: ['trip', 'onsen'], emoji: '♨️', title: '2泊3日、箱根で「何もしない」', body: '朝は川沿いを散歩、昼は蕎麦、夜は部屋で本。宿は2〜3か月前が狙い目。', area: '箱根', minutes: 0 },
+  { id: 't02', mag: 'POPEYE', issue: '島へ行く', kind: 'trip', slot: 'any', tags: ['trip', 'sea'], emoji: '🏝️', title: '週末、瀬戸内の島を自転車で', body: 'フェリーで渡って、島のカフェとミカン畑を巡る1泊2日。', area: '瀬戸内', minutes: 0 },
+  { id: 't03', mag: 'dancyu', issue: '食べ歩き特集', kind: 'trip', slot: 'any', tags: ['trip', 'food'], emoji: '🍣', title: '金沢で市場と寿司をはしご', body: '朝は近江町市場、夜はカウンター。新幹線で日帰りも可能。', area: '金沢', minutes: 0 },
+  { id: 'd01', mag: 'BRUTUS', issue: 'デート特集', kind: 'date', slot: 'any', tags: ['date', 'art'], emoji: '💑', title: '美術館→喫茶→ビストロの王道デート', body: '14時に美術館、16時に喫茶、19時にカウンターのビストロ。予約は1か月前から。', area: '清澄白河→恵比寿', minutes: 0 },
+  { id: 'd02', mag: 'POPEYE', issue: 'デート特集', kind: 'date', slot: 'any', tags: ['date', 'park'], emoji: '🚲', title: '公園とレコード店を歩く昼デート', body: 'パンを買って公園で食べ、レコード屋を冷かす。歩きやすい靴で。', area: '代々木', minutes: 0 },
+  { id: 'd03', mag: 'VOCE', issue: '記念日特集', kind: 'date', slot: 'any', tags: ['date', 'beauty'], emoji: '💐', title: '記念日はホテルのアフタヌーンティーで', body: '二か月前に予約開始の店が多い。服はいつもより少し綺麗めに。', area: '丸の内', minutes: 0 },
 ];
 
 // 広告（スポンサー）在庫のサンプル。tags が提案カードのタグと合うとき優先して出す。
