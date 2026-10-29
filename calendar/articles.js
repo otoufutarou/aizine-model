@@ -1,5 +1,7 @@
 // 各提案に紐づく雑誌記事（サンプル本文。実運用ではアーカイブ記事の引用・要約＋誌面リンクに差し替える）
 // p: 本文段落 / info: 基本情報 / page: 掲載頁 / by: クレジット
+import { MAGS, quoteOf } from './magazines.js';
+
 export const ARTICLES = {
   a01: { page: 'p.22', by: '文・編集部', p: ['開店は朝8時。ドアを開けると、深煎りの香りと古いレコードの音が出迎えてくれる。窓際の二人掛けが特等席だ。', 'たまごサンドは厚焼き。付け合わせのピクルスまで抜かりがない。仕事の前に本を一章だけ読む、そんな朝を過ごしたい。'], info: [['営業', '8:00–17:00（水休）'], ['予算', '〜1,200円'], ['エリア', '神保町']] },
   a02: { page: 'p.48', by: '文・編集部', p: ['店主が毎月入れ替える「今月の10冊」の棚が目当て。ジャンルを越えて並ぶ背表紙に、誰かの頭の中を覗くような楽しさがある。', '買うのは一冊だけ、と決めて入るのがいい。帰り道、近くの喫茶店で最初の数ページを読むまでが一セットだ。'], info: [['営業', '12:00–20:00（火休）'], ['予算', '〜2,000円'], ['エリア', '下北沢']] },
@@ -38,5 +40,15 @@ export const ARTICLES = {
 
 export function articleFor(item) {
   const a = ARTICLES[item.id] || { page: '', by: '編集部', p: [item.body], info: [] };
-  return { ...a, headline: item.title, mag: item.mag, issue: item.issue, emoji: item.emoji };
+  const m = MAGS[item.magId];
+  const web = item.format === 'web';
+  return {
+    ...a,
+    by: `文・${m.name}編集部`,
+    page: web ? '' : a.page,
+    headline: item.title, mag: item.mag, issue: item.issue, emoji: item.emoji,
+    magInfo: m, format: item.format, date: item.date,
+    url: web ? `https://${m.domain}/articles/${item.id}` : '',
+    quote: quoteOf(a.p[0]),
+  };
 }

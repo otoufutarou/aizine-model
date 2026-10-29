@@ -1,6 +1,8 @@
 // 雑誌アーカイブのサンプルデータ（デモ用の架空エントリ。実運用では雑誌社のアーカイブDBに差し替える）。
 // slot: morning / lunch / afternoon / evening / night
-export const ARCHIVE = [
+import { MAGS, ASSIGN } from './magazines.js';
+
+const RAW = [
   { id: 'a01', mag: 'BRUTUS', issue: '喫茶店特集', kind: 'spot', slot: 'morning', tags: ['cafe', 'solo'], emoji: '☕', title: '朝8時から開く純喫茶で、モーニングを', body: '昭和のままの窓際席とたまごサンド。本を一冊持っていきたい静けさ。', area: '神保町', minutes: 60 },
   { id: 'a02', mag: 'BRUTUS', issue: '本屋特集', kind: 'spot', slot: 'afternoon', tags: ['book', 'solo'], emoji: '📚', title: '店主の選書が光る小さな本屋へ', body: '一冊だけ買って帰る。装丁の話ができる店主がいる。', area: '下北沢', minutes: 60 },
   { id: 'a03', mag: 'POPEYE', issue: 'シティボーイ特集', kind: 'spot', slot: 'afternoon', tags: ['shop', 'fashion'], emoji: '🛍️', title: '古着とヴィンテージ雑貨を巡る2時間', body: '一点ものを探して歩く。履き慣れたスニーカーで。', area: '高円寺', minutes: 120 },
@@ -35,6 +37,12 @@ export const ARCHIVE = [
   { id: 'd02', mag: 'POPEYE', issue: 'デート特集', kind: 'date', slot: 'any', tags: ['date', 'park'], emoji: '🚲', title: '公園とレコード店を歩く昼デート', body: 'パンを買って公園で食べ、レコード屋を冷かす。歩きやすい靴で。', area: '代々木', minutes: 0 },
   { id: 'd03', mag: 'VOCE', issue: '記念日特集', kind: 'date', slot: 'any', tags: ['date', 'beauty'], emoji: '💐', title: '記念日はホテルのアフタヌーンティーで', body: '二か月前に予約開始の店が多い。服はいつもより少し綺麗めに。', area: '丸の内', minutes: 0 },
 ];
+
+// 元データの mag（旧表記）は無視し、架空誌・掲載形式・日付で上書きする
+export const ARCHIVE = RAW.map((it) => {
+  const [magId, format, date] = ASSIGN[it.id];
+  return { ...it, mag: MAGS[magId].name, magId, format, date };
+});
 
 // 広告（スポンサー）在庫のサンプル。tags が提案カードのタグと合うとき優先して出す。
 export const ADS = [
