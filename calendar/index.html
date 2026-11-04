@@ -4,17 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <meta name="theme-color" content="#ffffff" />
-    <title>Mag L!fe</title>
+    <title>Editime</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="phone">
-      <header class="top"><h1 class="logo">Mag L<span>!</span>fe</h1><span class="tag">編集部つきカレンダー</span></header>
+      <header class="top">
+        <h1 class="logo">Editime<span class="dot"></span></h1>
+        <span class="tag">EDITORIAL CALENDAR</span>
+      </header>
+      <div id="ticker" class="ticker"></div>
       <main id="view"></main>
       <nav class="tabs">
-        <button data-tab="calendar" class="on"><i>📅</i>カレンダー</button>
-        <button data-tab="suggest"><i>✨</i>提案</button>
-        <button data-tab="saved"><i>♥</i>保存</button>
+        <button data-tab="calendar" class="on">
+          <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Calendar
+        </button>
+        <button data-tab="suggest">
+          <svg viewBox="0 0 24 24"><path d="M12 3.5l2.2 5.3 5.3 2.2-5.3 2.2L12 18.5l-2.2-5.3L4.5 11l5.3-2.2z"/><path d="M19 17v4M17 19h4"/></svg>Suggest
+        </button>
+        <button data-tab="saved">
+          <svg viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6 4.2 4.2 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/></svg>Saved
+        </button>
       </nav>
       <div id="sheet" class="sheet" hidden></div>
       <div id="toast" class="toast" hidden></div>
