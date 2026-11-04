@@ -21,29 +21,55 @@ const fmtDate = (k) => { const d = parseKey(k); return `${d.getMonth() + 1}/${d.
 const CAT_NAMES = { work: '仕事', party: '会食・パーティ', beach: '海・アウトドア', date: 'デート', beauty: '美容', trip: '旅行', lunch: 'ランチ', sport: '運動', shop: '買い物', family: '友人・家族', other: 'その他' };
 const TYPE_NAMES = { gap: '空き時間', event: 'イベント', prep: '予定の準備', far: '2か月先', dayplan: '一日プラン', ad: 'PR' };
 
-// デモ用の架空の予定（今日からの相対日付）
+// デモ用の架空の予定：広告代理店勤務・社会人（趣味は旅行と飲み会）の1か月分
 function demoEvents() {
-  const e = (off, title, start, end, cal = 'life') => ({ id: uid(), date: dateKey(addDays(today, off)), title, start, end, cal });
-  return [
-    e(0, '朝ミーティング', '10:00', '11:00', 'work'), e(0, '企画の打ち合わせ', '14:00', '15:30', 'work'), e(0, '取引先と会食', '19:00', '21:00', 'work'),
-    e(1, '海でBBQ', '11:00', '16:00'),
-    e(2, 'ジム', '19:00', '20:30'), e(2, '定例会議', '10:00', '11:00', 'work'),
-    e(3, '友だちとランチ', '12:00', '13:30'),
-    e(4, 'デート', '18:30', '21:00'),
-    e(5, '渋谷で買い物', '13:00', '16:00'),
-    e(6, '友人の誕生日会', '19:00', '22:00'),
-    e(8, '美容院', '11:00', '12:30'), e(8, '定例会議', '15:00', '16:00', 'work'),
-    e(9, '母とランチ', '12:00', '13:30'),
+  const out = [];
+  const add = (off, title, start, end, cal = 'life') => out.push({ id: uid(), date: dateKey(addDays(today, off)), title, start, end, cal });
+  const W = [
+    [['朝会', '09:30', '10:00'], ['クライアント定例', '14:00', '15:30']],
+    [['企画ブレスト', '11:00', '12:00'], ['媒体社との打ち合わせ', '15:00', '16:00']],
+    [['撮影立ち会い', '10:00', '13:00'], ['制作チーム会議', '16:00', '17:00']],
+    [['プレゼン準備', '13:00', '15:00'], ['社内定例会議', '17:00', '18:00']],
+    [['クライアント訪問', '14:00', '15:30'], ['週次レビュー', '16:30', '17:30']],
   ];
+  let n = 0;
+  for (let i = 0; i < 30; i++) {
+    const dow = addDays(today, i).getDay();
+    if (dow === 0 || dow === 6) continue;
+    W[n++ % W.length].forEach(([t, s, e]) => add(i, t, s, e, 'work'));
+  }
+  add(0, '取引先と会食', '19:00', '21:00', 'work');
+  add(2, '同期と飲み会', '19:30', '22:00');
+  add(3, 'ジム', '20:00', '21:00');
+  add(5, '渋谷で買い物', '13:00', '16:00');
+  add(6, '友人の誕生日会', '18:00', '21:00');
+  add(7, '美容院', '11:00', '12:30');
+  add(9, '先輩と飲み', '19:30', '22:00');
+  add(10, '代休：京都旅行', '09:00', '20:00');
+  add(11, '京都旅行', '09:00', '20:00');
+  add(12, '京都旅行（帰り）', '10:00', '18:00');
+  add(14, '母とランチ', '12:00', '13:30');
+  add(15, 'ネイル', '17:00', '18:30');
+  add(16, 'クライアント接待', '19:00', '21:30', 'work');
+  add(18, '女子会', '19:00', '22:00');
+  add(20, 'ジム', '19:30', '20:30');
+  add(21, '友人とカフェ巡り', '13:00', '16:00');
+  add(22, 'デート', '18:30', '21:30');
+  add(24, '部署の打ち上げ', '19:00', '22:00', 'work');
+  add(26, '海でBBQ', '11:00', '16:00');
+  add(27, '箱根温泉旅行', '10:00', '18:00');
+  add(28, 'ランニング', '08:00', '09:00');
+  add(29, '同期と飲み会', '19:30', '22:00');
+  return out;
 }
 
 const state = {
   tab: ['suggest', 'saved'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'calendar', view: 'day', cursor: dateKey(today), monthPick: dateKey(today),
-  events: load('editime.events', null) || load('maglife.events', null) || demoEvents(),
+  events: load('editime.events2', null) || demoEvents(),
   saved: load('editime.saved', load('maglife.saved', [])),
   mode: 'outing', variant: 0, decks: {}, scope: load('editime.scope', 'all'), ai: load('editime.ai', true),
 };
-const persist = () => { store('editime.events', state.events); store('editime.saved', state.saved); store('editime.scope', state.scope); store('editime.ai', state.ai); };
+const persist = () => { store('editime.events2', state.events); store('editime.saved', state.saved); store('editime.scope', state.scope); store('editime.ai', state.ai); };
 persist();
 
 const view = $('#view');
@@ -420,8 +446,14 @@ function renderAi() {
 }
 function renderScope() {
   const el = $('#scope');
-  el.innerHTML = [['life', 'LIFE'], ['work', 'WORK'], ['all', 'BOTH']].map(([k, l]) => `<button data-s="${k}" class="${state.scope === k ? 'on' : ''}">${l}</button>`).join('');
-  el.querySelectorAll('button').forEach((b) => (b.onclick = () => { state.scope = b.dataset.s; touched(); render(); }));
+  const on = { life: state.scope !== 'work', work: state.scope !== 'life' };
+  el.innerHTML = [['life', 'LIFE'], ['work', 'WORK']].map(([k, l]) => `<button data-s="${k}" aria-pressed="${on[k]}" class="${on[k] ? 'on' : ''}">${l}</button>`).join('');
+  el.querySelectorAll('button').forEach((b) => (b.onclick = () => {
+    const next = { ...on, [b.dataset.s]: !on[b.dataset.s] };
+    if (!next.life && !next.work) next[b.dataset.s === 'life' ? 'work' : 'life'] = true;
+    state.scope = next.life && next.work ? 'all' : next.life ? 'life' : 'work';
+    touched(); render();
+  }));
 }
 function render() {
   renderScope(); renderAi();
