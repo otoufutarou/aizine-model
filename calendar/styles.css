@@ -272,3 +272,28 @@ main { flex: 1; overflow-y: auto; padding: 10px 16px 100px; -webkit-overflow-scr
 .aibtn { background: none; border: 1px solid var(--line); color: #c2c2c8; font-size: 10px; padding: 6px 9px; letter-spacing: .12em; }
 .aibtn.on { background: var(--ink); color: #fff; border-color: var(--ink); }
 .calchip { font-weight: 700; font-size: 7.5px; opacity: .9; background: rgba(255,255,255,.22); }
+
+/* Outlook 風 1日ビュー */
+.dhead { display: grid; grid-template-columns: 1fr 1fr; margin-left: 40px; gap: 6px; font-size: 8.5px; font-weight: 800; letter-spacing: .16em; color: var(--mute); padding: 2px 2px 6px; }
+.dhead span:last-child { color: #12b76a; } .dhead .off { opacity: .35; }
+.dg { position: relative; margin-bottom: 8px; }
+.gl .hr-line { position: absolute; left: 0; right: 0; border-top: 1px solid #efeff2; }
+.gl .hr-line span { position: absolute; left: 0; top: -7px; width: 34px; text-align: right; font: 700 10px/1 var(--serif); color: var(--mute); background: #fff; padding-right: 2px; }
+.lane { position: absolute; top: 0; bottom: 0; }
+.lane.l { left: 40px; right: 50%; margin-right: 3px; } .lane.r { left: 50%; right: 0; margin-left: 3px; }
+.gev { position: absolute; padding: 6px 8px; border-radius: 10px; font-size: 12px; display: block; overflow: hidden; box-sizing: border-box; box-shadow: 0 6px 12px -10px var(--fg); }
+.gev::after { display: none; }
+.gev b { font-weight: 800; line-height: 1.25; display: block; }
+.gev small { margin-top: 1px; font-size: 9.5px; }
+.gev .calchip { display: none; }
+.gev.sm { padding: 3px 8px; } .gev.sm small { display: none; }
+.gev .pn { position: absolute; right: 6px; bottom: 4px; font-style: normal; font-size: 9px; font-weight: 800; background: rgba(255,255,255,.3); border-radius: 99px; padding: 2px 6px; }
+.gsug { position: absolute; left: 0; right: 0; box-sizing: border-box; overflow: hidden; display: flex; gap: 7px; align-items: flex-start; padding: 6px; border-radius: 12px; cursor: pointer;
+  background: color-mix(in srgb, var(--fg) 9%, rgba(255,255,255,.55)); border: 1.5px dashed color-mix(in srgb, var(--fg) 50%, transparent); backdrop-filter: blur(2px); transition: transform .2s var(--spring), background .2s; }
+.gsug:active { transform: scale(.96); background: color-mix(in srgb, var(--fg) 18%, rgba(255,255,255,.6)); }
+.gsug .em { width: 38px; height: 38px; border-radius: 9px; flex: none; opacity: .92; overflow: hidden; }
+.gsug .em img { width: 100%; height: 100%; object-fit: cover; }
+.gsug .tx { min-width: 0; flex: 1; }
+.gsug .lb { font-size: 8.5px; font-weight: 800; color: var(--fg); letter-spacing: .08em; }
+.gsug .ti { font-size: 10.5px; font-weight: 700; line-height: 1.35; margin-top: 1px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.gsug.tall { flex-direction: column; } .gsug.tall .em { width: 100%; height: 56px; }

@@ -2,7 +2,7 @@ import { ARCHIVE, ADS } from './archive.js';
 import { articleFor } from './articles.js';
 import { MAGS, FORMAT_NAME } from './magazines.js';
 import { photoUrl } from './photos.js';
-import { outingDeck, prepDeck, prepCards, gapCard, dayTimeline, findGaps, categoryOf, calOf, inScope, dateKey, parseKey, addDays, toHHMM, toMin } from './engine.js';
+import { outingDeck, prepDeck, prepCards, gapCard, DAY_START, dayTimeline, findGaps, categoryOf, calOf, inScope, dateKey, parseKey, addDays, toHHMM, toMin } from './engine.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -277,22 +277,40 @@ function bindCards(root) {
 }
 const reg = (c) => { cardIndex.set(c.id, c); return c; };
 
+// Outlook 風の時間軸：左＝自分の予定、右＝AIの提案（半透明）
+const G0 = 8, G1 = 23, HH = 64;
 function dayView() {
   const { rows, ad } = dayTimeline(parseKey(state.cursor), state.events, ARCHIVE, ADS, state.variant, state.scope);
-  const shown = state.ai ? rows : rows.filter((r) => r.type === 'event').map((r) => ({ ...r, prep: [] }));
-  const html = shown.map((r) => {
-    if (r.type === 'event') {
-      const e = r.e;
-      return `<div class="row"><div class="time">${e.start || '終日'}</div><div>
-        <div class="evbox c-${categoryOf(e.title)} press" data-edit="${e.id}"><div>${esc(e.title)}${calChip(e)}<small>${timeLabel(e)}</small></div><div class="ed"><span class="pen">編集</span><button data-del="${e.id}" aria-label="削除">✕</button></div></div>
-        ${r.prep.length ? `<div class="prephead c-${categoryOf(e.title)}">PREPARATION ・ もっと良くする準備</div>` : ''}${r.prep.map((c) => sugCard(reg(c), 'in-event')).join('')}</div></div>`;
-    }
-    if (r.type === 'gap') return `<div class="row"><div class="time">${toHHMM(r.card.gap.start)}</div><div>${sugCard(reg(r.card))}</div></div>`;
-    const c = reg(r.card);
-    return `<div class="row"><div class="time">終日</div><div><div class="sug-card t-dayplan press" data-card="${c.id}">${thumb(c.stops[0].item)}<div class="tx"><div class="lb">予定のない日</div><div class="ti">一日まるごとプランを提案</div><div class="src"><span class="srcchip" style="--mc:#f5a300;--mb:#fff3cf">全${c.stops.length}スポット</span></div></div><span class="go">›</span></div></div></div>`;
+  const evRows = rows.filter((r) => r.type === 'event');
+  const timed = evRows.filter((r) => r.e.start).map((r) => {
+    const s = Math.max(toMin(r.e.start), G0 * 60), e = Math.min(r.e.end ? toMin(r.e.end) : s + 60, G1 * 60);
+    return { ev: r.e, prep: r.prep, s, en: Math.max(e, s + 30) };
+  }).sort((x, y) => x.s - y.s);
+  // 重なる予定は列を分けて並べる
+  const cols = [];
+  timed.forEach((t) => { let c = cols.findIndex((end) => end <= t.s); if (c < 0) { c = cols.length; cols.push(0); } cols[c] = t.en; t.col = c; });
+  timed.forEach((t) => { t.n = Math.max(...timed.filter((o) => o.s < t.en && t.s < o.en).map((o) => o.col)) + 1; });
+  const y = (m) => ((m - G0 * 60) / 60) * HH;
+  const allDay = evRows.filter((r) => !r.e.start).map((r) => `<div class="evbox c-${categoryOf(r.e.title)} press" data-edit="${r.e.id}" style="margin-bottom:6px"><div>${esc(r.e.title)}${calChip(r.e)}<small>終日</small></div></div>`).join('');
+  const grid = Array.from({ length: G1 - G0 + 1 }, (_, i) => `<div class="hr-line" style="top:${i * HH}px"><span>${String(G0 + i).padStart(2, '0')}:00</span></div>`).join('');
+  const left = timed.map((t) => {
+    const prep = state.ai ? t.prep.length : 0;
+    const h = ((t.en - t.s) / 60) * HH - 3;
+    return `<div class="gev evbox c-${categoryOf(t.ev.title)} press ${h < 44 ? 'sm' : ''}" data-edit="${t.ev.id}" style="top:${y(t.s)}px;height:${h}px;left:${(t.col / t.n) * 100}%;width:${100 / t.n - 1}%"><b>${esc(t.ev.title)}</b>${calChip(t.ev)}<small>${timeLabel(t.ev)}</small>${prep ? `<i class="pn">✦${prep}</i>` : ''}</div>`;
   }).join('');
-  const adHtml = ad && state.ai ? `<div class="sug-card t-ad" style="margin-top:6px"><div class="em ad">PR</div><div class="tx"><div class="lb">${esc(ad.ad.brand)}</div><div class="ti">${esc(ad.ad.title)}</div></div></div>` : '';
-  return `<div class="tl">${html || `<div class="empty">${state.scope === 'work' ? 'WORKの予定はありません' : '予定はありません'}</div>`}${adHtml}</div>
+  const sug = !state.ai ? '' : rows.filter((r) => r.type !== 'event').map((r) => {
+    if (r.type === 'gap') {
+      const c = reg(r.card), g = c.gap, i = c.item;
+      const h = Math.min(g.end - g.start, 150) / 60 * HH - 4;
+      return `<div class="gsug t-gap press ${h > 90 ? 'tall' : ''}" data-card="${c.id}" style="top:${y(g.start)}px;height:${h}px">${thumb(i)}<div class="tx"><div class="lb">${toHHMM(g.start)}–${toHHMM(g.end)}</div><div class="ti">${esc(i.title)}</div></div></div>`;
+    }
+    const c = reg(r.card);
+    return `<div class="gsug t-dayplan tall press" data-card="${c.id}" style="top:${y(DAY_START)}px;height:150px">${thumb(c.stops[0].item)}<div class="tx"><div class="lb">予定のない日</div><div class="ti">一日まるごとプラン（全${c.stops.length}スポット）</div></div></div>`;
+  }).join('');
+  const adHtml = ad && state.ai ? `<div class="sug-card t-ad" style="margin-top:10px"><div class="em ad">PR</div><div class="tx"><div class="lb">${esc(ad.ad.brand)}</div><div class="ti">${esc(ad.ad.title)}</div></div></div>` : '';
+  const empty = !evRows.length && !state.ai ? `<div class="empty">${state.scope === 'work' ? 'WORKの予定はありません' : '予定はありません'}</div>` : '';
+  return `${allDay}<div class="dhead"><span>MY SCHEDULE</span><span class="${state.ai ? '' : 'off'}">✦ EDITOR'S SUGGEST</span></div>
+    <div class="dg" style="height:${(G1 - G0) * HH}px"><div class="gl">${grid}</div><div class="lane l">${left}</div><div class="lane r">${sug}</div></div>${empty}${adHtml}
     <div class="legend">${Object.entries(CAT_NAMES).map(([k, v]) => `<span class="c-${k}"><i></i>${v}</span>`).join('')}</div>`;
 }
 
