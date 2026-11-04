@@ -260,3 +260,15 @@ main { flex: 1; overflow-y: auto; padding: 10px 16px 100px; -webkit-overflow-scr
 .scope button { padding: 7px 8px; letter-spacing: .08em; }
 .evhead { background: var(--fg); color: var(--on, #fff); border-radius: 20px; padding: 16px; margin-top: 4px; }
 .evhead .evt { font-weight: 800; font-size: 20px; } .evhead .evm { font-size: 12px; opacity: .85; margin-top: 4px; font-weight: 600; }
+
+.bm { width: 1.05em; height: 1.05em; vertical-align: -.15em; }
+.actions .y .bm { width: 24px; height: 24px; vertical-align: middle; }
+/* 控えめな LIFE / WORK / AI */
+.scope { background: none; padding: 0; gap: 2px; }
+.scope button { background: none !important; box-shadow: none !important; color: #c2c2c8; font-weight: 700; font-size: 11px; letter-spacing: .1em; padding: 6px 7px; position: relative; }
+.scope button.on { color: var(--ink); }
+.scope button.on::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--ink); }
+.scope button.on[data-s="life"]::after { background: #ff4d8d; } .scope button.on[data-s="work"]::after { background: #3d6bff; }
+.aibtn { background: none; border: 1px solid var(--line); color: #c2c2c8; font-size: 10px; padding: 6px 9px; letter-spacing: .12em; }
+.aibtn.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.calchip { font-weight: 700; font-size: 7.5px; opacity: .9; background: rgba(255,255,255,.22); }

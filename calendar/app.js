@@ -74,6 +74,7 @@ persist();
 
 const view = $('#view');
 const sheet = $('#sheet');
+const bm = (f) => `<svg class="bm" viewBox="0 0 24 24" fill="${f ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6.5 3.5h11v17L12 16.5l-5.5 4z"/></svg>`;
 const isSaved = (id) => state.saved.some((s) => s.id === id);
 const touched = () => { state.decks = {}; persist(); };
 
@@ -159,9 +160,9 @@ function openArticle(item, card) {
     <h2>${esc(a.headline)}</h2><div class="by">${esc(a.by)}（架空の記事）</div>
     ${a.p.map((p) => `<p>${esc(p)}</p>`).join('')}
     ${a.info.length ? `<dl>${a.info.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
-    <div class="acts"><button class="btn ghost press" id="sv">${isSaved(card?.id) ? '♥ 保存済み' : '♡ 保存'}</button>
+    <div class="acts"><button class="btn ghost press" id="sv">${bm(isSaved(card?.id))} ${isSaved(card?.id) ? '保存済み' : '保存'}</button>
       ${ev ? `<button class="btn press" id="ad">${ev.start}–${ev.end} に予定追加</button>` : card?.type === 'prep' ? '<button class="btn ghost press" disabled>前後に空きがありません</button>' : ''}</div></div>`, (s) => {
-    $('#sv', s).onclick = (e) => { if (card) toggleSave(card); e.target.textContent = isSaved(card?.id) ? '♥ 保存済み' : '♡ 保存'; e.target.classList.add('heart-pop'); if (isSaved(card?.id)) burst(e.target); };
+    $('#sv', s).onclick = (e) => { if (card) toggleSave(card); e.currentTarget.innerHTML = `${bm(isSaved(card?.id))} ${isSaved(card?.id) ? '保存済み' : '保存'}`; e.currentTarget.classList.add('heart-pop'); if (isSaved(card?.id)) burst(e.currentTarget); };
     if (ev) $('#ad', s).onclick = () => { state.events.push(ev); touched(); closeSheet(); toast(`${fmtDate(ev.date)} ${ev.start} に追加しました`); setTimeout(render, 220); };
   }, { label: a.mag, sub: `${a.format === 'web' ? 'WEB' : 'PRINT'} ${a.date}`, c: a.magInfo.c, font: a.magInfo.font });
 }
@@ -170,9 +171,9 @@ function openPlan(card) {
   openSheet(`<div class="art t-dayplan"><div class="mast f-serif"><b>Day Plan</b><small>${fmtDate(card.date)}</small></div>
     <h2 style="margin-top:14px">${fmtDate(card.date)}をまるごと</h2><div class="by">編集部が各誌の記事から組みました</div>
     ${card.stops.map((s, i) => `<div class="sug-card t-gap press" data-i="${i}" style="margin-bottom:8px">${thumb(s.item)}<div class="tx"><div class="lb">${s.time}</div><div class="ti">${esc(s.item.title)}</div><div class="src">${srcChip(s.item)}</div></div><span class="go">›</span></div>`).join('')}
-    <div class="acts"><button class="btn ghost press" id="sv">${isSaved(card.id) ? '♥ 保存済み' : '♡ 保存'}</button></div></div>`, (s) => {
+    <div class="acts"><button class="btn ghost press" id="sv">${bm(isSaved(card.id))} ${isSaved(card.id) ? '保存済み' : '保存'}</button></div></div>`, (s) => {
     s.querySelectorAll('[data-i]').forEach((el) => (el.onclick = () => { const st = card.stops[el.dataset.i]; openArticle(st.item, { ...card, type: 'gap', id: `${card.id}-${st.item.id}`, gap: { start: toMin(st.time), end: toMin(st.time) + (st.item.minutes || 60) } }); }));
-    $('#sv', s).onclick = (e) => { toggleSave(card); e.target.textContent = isSaved(card.id) ? '♥ 保存済み' : '♡ 保存'; e.target.classList.add('heart-pop'); if (isSaved(card.id)) burst(e.target); };
+    $('#sv', s).onclick = (e) => { toggleSave(card); e.currentTarget.innerHTML = `${bm(isSaved(card.id))} ${isSaved(card.id) ? '保存済み' : '保存'}`; e.currentTarget.classList.add('heart-pop'); if (isSaved(card.id)) burst(e.currentTarget); };
   }, { label: 'Day Plan', sub: 'EDITIME', c: '#f5a300', font: 'serif' });
 }
 const openCard = (c) => (c.type === 'dayplan' ? openPlan(c) : c.type === 'ad' ? null : openArticle(c.item, c));
@@ -180,7 +181,7 @@ const openCard = (c) => (c.type === 'dayplan' ? openPlan(c) : c.type === 'ad' ? 
 function toggleSave(card) {
   if (card.type === 'ad') return;
   if (isSaved(card.id)) state.saved = state.saved.filter((s) => s.id !== card.id);
-  else { state.saved.unshift({ id: card.id, card }); toast('保存しました ♥'); }
+  else { state.saved.unshift({ id: card.id, card }); toast('保存しました'); }
   persist();
 }
 
@@ -384,9 +385,9 @@ function renderSuggest() {
   view.innerHTML = seg + shelf() + `<p class="hint" style="margin:0 0 10px">${sub}</p>` + (top ? `
     <div class="deck">
       ${next ? `<div class="card under t-${next.type}">${cardBody(next)}</div>` : ''}
-      <div class="card front pop t-${top.type}" id="top"><div class="stamp like">保存 ♥</div><div class="stamp nope">違う</div>${cardBody(top)}</div>
+      <div class="card front pop t-${top.type}" id="top"><div class="stamp like">保存</div><div class="stamp nope">違う</div>${cardBody(top)}</div>
     </div>
-    <div class="actions"><button class="n" id="nope" aria-label="違う">✕</button><button class="y" id="like" aria-label="保存">♥</button></div>
+    <div class="actions"><button class="n" id="nope" aria-label="違う">✕</button><button class="y" id="like" aria-label="保存">${bm(false)}</button></div>
     <p class="hint">← 左スワイプで却下 ／ 右スワイプで保存 →　（タップで記事）</p>`
     : `<div class="empty">この予定への提案は以上です。<br><br><button class="btn press" id="more">新しい提案をもらう</button></div>`);
 
@@ -422,7 +423,7 @@ function renderSuggest() {
   $('#like').onclick = () => decide(true);
   $('#nope').onclick = () => decide(false);
 }
-function toggleSaveOnly(c) { if (c.type !== 'ad' && !isSaved(c.id)) { state.saved.unshift({ id: c.id, card: c }); persist(); toast('保存しました ♥'); burst(); } }
+function toggleSaveOnly(c) { if (c.type !== 'ad' && !isSaved(c.id)) { state.saved.unshift({ id: c.id, card: c }); persist(); toast('保存しました'); burst(); } }
 
 // ---------- 保存 ----------
 function renderSaved() {
@@ -433,14 +434,14 @@ function renderSaved() {
     const src = c.type === 'dayplan' ? [...new Set(c.stops.map((x) => x.item.mag))].join(' / ') : `${c.item.mag} ${FORMAT_NAME[c.item.format]}`;
     return `<div class="saved t-${c.type} press rise" data-card="${c.id}">${em}<div><div class="ti">${esc(ti)}</div><small>${fmtDate(c.date)}・${esc(src)}</small></div></div>`;
   }).join('');
-  view.innerHTML = `<div class="nav"><h2>♥ 保存した提案</h2></div>${items || '<div class="empty">提案タブで右にスワイプすると、ここに溜まります。</div>'}
+  view.innerHTML = `<div class="nav"><h2>${bm(true)} 保存した提案</h2></div>${items || '<div class="empty">提案タブで右にスワイプすると、ここに溜まります。</div>'}
     <button class="resetbtn" id="reset">デモ用の予定にリセット</button>`;
   bindCards(view);
   $('#reset').onclick = () => { state.events = demoEvents(); state.saved = []; touched(); toast('デモの予定に戻しました'); render(); };
 }
 
 function renderAi() {
-  const b = $('#ai'); b.classList.toggle('on', state.ai); b.textContent = state.ai ? 'AI ON' : 'AI OFF';
+  const b = $('#ai'); b.classList.toggle('on', state.ai); b.textContent = 'AI';
   b.onclick = () => { state.ai = !state.ai; touched(); toast(state.ai ? 'AI提案をオンにしました' : 'AI提案をオフにしました'); render(); };
   $('#ticker').style.display = state.ai ? '' : 'none';
 }
