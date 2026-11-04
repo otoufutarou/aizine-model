@@ -120,7 +120,7 @@ function burst(el) {
 }
 function closeSheet() {
   sheet.classList.add('closing');
-  setTimeout(() => { sheet.hidden = true; sheet.classList.remove('closing'); sheet.innerHTML = ''; }, 720);
+  setTimeout(() => { sheet.hidden = true; sheet.classList.remove('closing'); sheet.innerHTML = ''; }, 0);
 }
 
 const SLOT_START = { morning: '09:30', lunch: '12:00', afternoon: '15:00', evening: '19:00', night: '20:00' };
