@@ -2,7 +2,7 @@ import { ARCHIVE, ADS } from './archive.js';
 import { articleFor } from './articles.js';
 import { MAGS, FORMAT_NAME } from './magazines.js';
 import { photoUrl } from './photos.js';
-import { outingDeck, prepDeck, dayTimeline, findGaps, categoryOf, calOf, inScope, dateKey, parseKey, addDays, toHHMM, toMin } from './engine.js';
+import { outingDeck, prepDeck, prepCards, dayTimeline, findGaps, categoryOf, calOf, inScope, dateKey, parseKey, addDays, toHHMM, toMin } from './engine.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -41,9 +41,9 @@ const state = {
   tab: ['suggest', 'saved'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'calendar', view: 'day', cursor: dateKey(today), monthPick: dateKey(today),
   events: load('editime.events', null) || load('maglife.events', null) || demoEvents(),
   saved: load('editime.saved', load('maglife.saved', [])),
-  mode: 'outing', variant: 0, decks: {}, scope: load('editime.scope', 'all'),
+  mode: 'outing', variant: 0, decks: {}, scope: load('editime.scope', 'all'), ai: load('editime.ai', true),
 };
-const persist = () => { store('editime.events', state.events); store('editime.saved', state.saved); store('editime.scope', state.scope); };
+const persist = () => { store('editime.events', state.events); store('editime.saved', state.saved); store('editime.scope', state.scope); store('editime.ai', state.ai); };
 persist();
 
 const view = $('#view');
@@ -142,6 +142,22 @@ function toggleSave(card) {
   persist();
 }
 
+// 予定をタップ：詳細＋その予定に紐づく提案
+let detailVariant = 0;
+function openEventDetail(ev, more = false) {
+  if (more) detailVariant++; else detailVariant = 0;
+  const cal = calOf(ev);
+  const cards = state.ai ? prepCards(parseKey(ev.date), ev, ARCHIVE, state.variant + detailVariant) : [];
+  openSheet(`<div class="evhead c-${categoryOf(ev.title)}"><div class="evt">${esc(ev.title)}<span class="calchip">${cal.toUpperCase()}</span></div><div class="evm">${ev.date.replace(/-/g, '/')} ・ ${timeLabel(ev)}</div></div>
+    <div class="prephead c-${categoryOf(ev.title)}" style="margin:14px 0 8px">${state.ai ? 'この予定への編集部からの提案' : 'AI提案はオフです'}</div>
+    ${cards.length ? cards.map((c) => sugCard(reg(c))).join('') : `<div class="empty">${state.ai ? 'この予定に合う提案はまだありません。<small>タイトルを「会食」「デート」などに変えると提案が出ます。</small>' : '右上の AI をオンにすると提案が出ます。'}</div>`}
+    <div class="r" style="display:flex;gap:8px;margin-top:12px">${cards.length ? '<button class="btn press" id="again" style="flex:1">別の提案</button>' : ''}<button class="btn danger press" id="edit" style="flex:1">予定を編集</button></div>`, (sh) => {
+    bindCards(sh);
+    const a = $('#again', sh); if (a) a.onclick = () => openEventDetail(ev, true);
+    $('#edit', sh).onclick = () => openEventForm(ev);
+  }, { label: ev.title.slice(0, 8), sub: 'EVENT', c: cal === 'work' ? '#3d6bff' : '#ff4d8d', font: 'serif' });
+}
+
 // 予定の追加・編集（ev があれば編集）
 function openEventForm(ev) {
   const cal = ev ? calOf(ev) : state.scope === 'all' ? 'life' : state.scope;
@@ -201,7 +217,7 @@ function renderCalendar() {
   $('#today').onclick = () => { state.cursor = dateKey(today); render(); };
   $('#fab').onclick = openAddForm;
   view.querySelectorAll('[data-del]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); state.events = state.events.filter((x) => x.id !== b.dataset.del); touched(); toast('削除しました'); render(); }));
-  view.querySelectorAll('[data-edit]').forEach((el) => (el.onclick = (e) => { if (e.target.closest('[data-del]')) return; const ev = state.events.find((x) => x.id === el.dataset.edit); if (ev) openEventForm(ev); }));
+  view.querySelectorAll('[data-edit]').forEach((el) => (el.onclick = (e) => { if (e.target.closest('[data-del]')) return; const ev = state.events.find((x) => x.id === el.dataset.edit); if (ev) openEventDetail(ev); }));
   view.querySelectorAll('[data-goday]').forEach((el) => (el.onclick = () => { state.cursor = el.dataset.goday; state.view = 'day'; render(); }));
   view.querySelectorAll('[data-pick]').forEach((el) => (el.onclick = () => { state.cursor = el.dataset.pick; render(); }));
   bindCards(view);
@@ -215,7 +231,8 @@ const reg = (c) => { cardIndex.set(c.id, c); return c; };
 
 function dayView() {
   const { rows, ad } = dayTimeline(parseKey(state.cursor), state.events, ARCHIVE, ADS, state.variant, state.scope);
-  const html = rows.map((r) => {
+  const shown = state.ai ? rows : rows.filter((r) => r.type === 'event').map((r) => ({ ...r, prep: [] }));
+  const html = shown.map((r) => {
     if (r.type === 'event') {
       const e = r.e;
       return `<div class="row"><div class="time">${e.start || '終日'}</div><div>
@@ -226,7 +243,7 @@ function dayView() {
     const c = reg(r.card);
     return `<div class="row"><div class="time">終日</div><div><div class="sug-card t-dayplan press" data-card="${c.id}">${thumb(c.stops[0].item)}<div class="tx"><div class="lb">予定のない日</div><div class="ti">一日まるごとプランを提案</div><div class="src"><span class="srcchip" style="--mc:#f5a300;--mb:#fff3cf">全${c.stops.length}スポット</span></div></div><span class="go">›</span></div></div></div>`;
   }).join('');
-  const adHtml = ad ? `<div class="sug-card t-ad" style="margin-top:6px"><div class="em ad">PR</div><div class="tx"><div class="lb">${esc(ad.ad.brand)}</div><div class="ti">${esc(ad.ad.title)}</div></div></div>` : '';
+  const adHtml = ad && state.ai ? `<div class="sug-card t-ad" style="margin-top:6px"><div class="em ad">PR</div><div class="tx"><div class="lb">${esc(ad.ad.brand)}</div><div class="ti">${esc(ad.ad.title)}</div></div></div>` : '';
   return `<div class="tl">${html || `<div class="empty">${state.scope === 'work' ? 'WORKの予定はありません' : '予定はありません'}</div>`}${adHtml}</div>
     <div class="legend">${Object.entries(CAT_NAMES).map(([k, v]) => `<span class="c-${k}"><i></i>${v}</span>`).join('')}</div>`;
 }
@@ -237,7 +254,8 @@ function weekView() {
   let out = '';
   for (let i = 0; i < 7; i++) {
     const d = addDays(start, i), k = dateKey(d);
-    const { rows } = dayTimeline(d, state.events, ARCHIVE, ADS, state.variant, state.scope);
+    const { rows: allRows } = dayTimeline(d, state.events, ARCHIVE, ADS, state.variant, state.scope);
+    const rows = state.ai ? allRows : allRows.filter((r) => r.type === 'event');
     const evs = rows.filter((r) => r.type === 'event').map((r) => `<span class="pill c-${categoryOf(r.e.title)}"><small>${r.e.start || ''}</small>${esc(r.e.title)}</span>`).join('');
     const sugs = rows.filter((r) => r.type === 'gap').slice(0, 2).map((r) => `<span class="pill sug t-gap"><small>${toHHMM(r.card.gap.start)}</small>${esc(r.card.item.title)}</span>`).join('');
     const plan = rows.find((r) => r.type === 'dayplan') ? `<span class="pill sug t-dayplan">一日まるごとプランあり</span>` : '';
@@ -309,6 +327,7 @@ function openMag(id) {
 }
 
 function renderSuggest() {
+  if (!state.ai) { view.innerHTML = `<div class="empty" style="margin-top:80px">AI提案はオフです。<br><br><button class="btn press" id="aion">AI提案をオンにする</button></div>`; $('#aion').onclick = () => { state.ai = true; touched(); render(); }; return; }
   const build = state.mode === 'outing' ? outingDeck : prepDeck;
   if (!state.decks[state.mode]) state.decks[state.mode] = build({ events: state.events, today, archive: ARCHIVE, ads: ADS, variant: state.variant, scope: state.scope });
   const deck = state.decks[state.mode];
@@ -373,13 +392,18 @@ function renderSaved() {
   $('#reset').onclick = () => { state.events = demoEvents(); state.saved = []; touched(); toast('デモの予定に戻しました'); render(); };
 }
 
+function renderAi() {
+  const b = $('#ai'); b.classList.toggle('on', state.ai); b.textContent = state.ai ? 'AI ON' : 'AI OFF';
+  b.onclick = () => { state.ai = !state.ai; touched(); toast(state.ai ? 'AI提案をオンにしました' : 'AI提案をオフにしました'); render(); };
+  $('#ticker').style.display = state.ai ? '' : 'none';
+}
 function renderScope() {
   const el = $('#scope');
   el.innerHTML = [['life', 'LIFE'], ['work', 'WORK'], ['all', 'BOTH']].map(([k, l]) => `<button data-s="${k}" class="${state.scope === k ? 'on' : ''}">${l}</button>`).join('');
   el.querySelectorAll('button').forEach((b) => (b.onclick = () => { state.scope = b.dataset.s; touched(); render(); }));
 }
 function render() {
-  renderScope();
+  renderScope(); renderAi();
   document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === state.tab));
   view.scrollTop = 0;
   if (state.tab === 'calendar') renderCalendar(); else if (state.tab === 'suggest') renderSuggest(); else renderSaved();
