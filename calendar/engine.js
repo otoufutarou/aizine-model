@@ -73,7 +73,7 @@ const slotOf = (min) => (min < 11 * 60 ? 'morning' : min < 14 * 60 ? 'lunch' : m
 const NO_GAP = ['event', 'prep'];
 const LEAD = ['予定のあいだ、ちょうどいい時間です。', 'この空き時間、寄り道にぴったり。', '予定と予定の間に、小さな冒険を。', '帰り道に、いいお店を見つけました。'];
 
-function gapCard(date, gap, archive, variant, dayEvents, used, scope = 'all', busy = dayEvents) {
+export function gapCard(date, gap, archive, variant, dayEvents, used, scope = 'all', busy = dayEvents) {
   const len = gap.end - gap.start;
   const slot = slotOf(gap.start + Math.min(60, len / 2));
   const tags = dayEvents.flatMap((e) => detectMoments(e.title));

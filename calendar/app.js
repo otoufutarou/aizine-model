@@ -2,7 +2,7 @@ import { ARCHIVE, ADS } from './archive.js';
 import { articleFor } from './articles.js';
 import { MAGS, FORMAT_NAME } from './magazines.js';
 import { photoUrl } from './photos.js';
-import { outingDeck, prepDeck, prepCards, dayTimeline, findGaps, categoryOf, calOf, inScope, dateKey, parseKey, addDays, toHHMM, toMin } from './engine.js';
+import { outingDeck, prepDeck, prepCards, gapCard, dayTimeline, findGaps, categoryOf, calOf, inScope, dateKey, parseKey, addDays, toHHMM, toMin } from './engine.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -95,13 +95,29 @@ function closeSheet() {
 }
 
 const SLOT_START = { morning: '09:30', lunch: '12:00', afternoon: '15:00', evening: '19:00', night: '20:00' };
+const cleanTitle = (item) => item.title.replace(/^【.*?】/, '').slice(0, 20);
+const overlaps = (list, a, b) => list.some((x) => x.start && x.end && toMin(x.start) < b && a < toMin(x.end));
+// 予定に紐づく提案は、予定の前か後ろの空きに置く。重なる場合は追加不可
+function placeNear(card, item) {
+  const ev = state.events.find((x) => x.id === card.eventId);
+  if (!ev || !ev.start || !ev.end) return null;
+  const others = state.events.filter((x) => x.date === ev.date && x.id !== ev.id);
+  const len = Math.min(item.minutes || 45, 90);
+  const after = /後|翌|帰り|二軒/.test(card.label) || (item.tags || []).some((t) => ['after', 'second', 'night'].includes(t));
+  const s0 = toMin(ev.start), e0 = toMin(ev.end);
+  const cands = [[s0 - len, s0], [e0, e0 + len]];
+  if (after) cands.reverse();
+  const ok = cands.find(([a, b]) => a >= 7 * 60 && b <= 23 * 60 && !overlaps(others, a, b));
+  return ok ? { id: uid(), date: ev.date, title: cleanTitle(item), start: toHHMM(ok[0]), end: toHHMM(ok[1]), cal: calOf(ev) } : null;
+}
 function addableEvent(card, item) {
-  if (!card || card.type === 'prep' || card.type === 'ad') return null;
+  if (!card || card.type === 'ad') return null;
+  if (card.type === 'prep') return placeNear(card, item);
   let start = card.gap ? toHHMM(card.gap.start) : SLOT_START[item.slot] || '10:00';
   let len = item.minutes || 60;
   if (card.gap) len = Math.min(len, card.gap.end - card.gap.start);
   const end = toHHMM(toMin(start) + len);
-  return { id: uid(), date: card.date, title: item.title.replace(/^【.*?】/, '').slice(0, 20), start, end, cal: state.scope === 'work' ? 'work' : 'life' };
+  return { id: uid(), date: card.date, title: cleanTitle(item), start, end, cal: state.scope === 'work' ? 'work' : 'life' };
 }
 
 function openArticle(item, card) {
@@ -118,7 +134,7 @@ function openArticle(item, card) {
     ${a.p.map((p) => `<p>${esc(p)}</p>`).join('')}
     ${a.info.length ? `<dl>${a.info.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
     <div class="acts"><button class="btn ghost press" id="sv">${isSaved(card?.id) ? '♥ 保存済み' : '♡ 保存'}</button>
-      ${ev ? `<button class="btn press" id="ad">予定に追加</button>` : ''}</div></div>`, (s) => {
+      ${ev ? `<button class="btn press" id="ad">${ev.start}–${ev.end} に予定追加</button>` : card?.type === 'prep' ? '<button class="btn ghost press" disabled>前後に空きがありません</button>' : ''}</div></div>`, (s) => {
     $('#sv', s).onclick = (e) => { if (card) toggleSave(card); e.target.textContent = isSaved(card?.id) ? '♥ 保存済み' : '♡ 保存'; e.target.classList.add('heart-pop'); if (isSaved(card?.id)) burst(e.target); };
     if (ev) $('#ad', s).onclick = () => { state.events.push(ev); touched(); closeSheet(); toast(`${fmtDate(ev.date)} ${ev.start} に追加しました`); setTimeout(render, 220); };
   }, { label: a.mag, sub: `${a.format === 'web' ? 'WEB' : 'PRINT'} ${a.date}`, c: a.magInfo.c, font: a.magInfo.font });
@@ -148,9 +164,14 @@ function openEventDetail(ev, more = false) {
   if (more) detailVariant++; else detailVariant = 0;
   const cal = calOf(ev);
   const cards = state.ai ? prepCards(parseKey(ev.date), ev, ARCHIVE, state.variant + detailVariant) : [];
+  const day = state.events.filter((x) => x.date === ev.date);
+  const near = !state.ai || !ev.start || !ev.end ? [] : findGaps(day).filter((g) => g.end === toMin(ev.start) || g.start === toMin(ev.end));
+  const used = new Set(cards.map((c) => c.item.id));
+  const gapCards = near.map((g) => gapCard(parseKey(ev.date), g, ARCHIVE, state.variant + detailVariant, day.filter((x) => inScope(x, state.scope)), used, state.scope, day)).filter(Boolean);
   openSheet(`<div class="evhead c-${categoryOf(ev.title)}"><div class="evt">${esc(ev.title)}<span class="calchip">${cal.toUpperCase()}</span></div><div class="evm">${ev.date.replace(/-/g, '/')} ・ ${timeLabel(ev)}</div></div>
     <div class="prephead c-${categoryOf(ev.title)}" style="margin:14px 0 8px">${state.ai ? 'この予定への編集部からの提案' : 'AI提案はオフです'}</div>
     ${cards.length ? cards.map((c) => sugCard(reg(c))).join('') : `<div class="empty">${state.ai ? 'この予定に合う提案はまだありません。<small>タイトルを「会食」「デート」などに変えると提案が出ます。</small>' : '右上の AI をオンにすると提案が出ます。'}</div>`}
+    ${gapCards.length ? `<div class="prephead c-${categoryOf(ev.title)}" style="margin:14px 0 8px">前後の空き時間に、寄り道</div>${gapCards.map((c) => sugCard(reg(c))).join('')}` : ''}
     <div class="r" style="display:flex;gap:8px;margin-top:12px">${cards.length ? '<button class="btn press" id="again" style="flex:1">別の提案</button>' : ''}<button class="btn danger press" id="edit" style="flex:1">予定を編集</button></div>`, (sh) => {
     bindCards(sh);
     const a = $('#again', sh); if (a) a.onclick = () => openEventDetail(ev, true);
