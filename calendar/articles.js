@@ -39,7 +39,8 @@ export const ARTICLES = {
 };
 
 export function articleFor(item) {
-  const a = ARTICLES[item.id] || { page: '', by: '編集部', p: [item.body], info: [] };
+  const a = ARTICLES[item.id] || { page: item.format === 'print' ? 'p.' + (10 + (item.id.charCodeAt(1) * 7 + item.id.charCodeAt(2) * 3) % 90) : '', by: '編集部', p: item.p || [item.body], info: item.info || [] };
+  const map = item.place ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.place)}` : '';
   const m = MAGS[item.magId];
   const web = item.format === 'web';
   return {
@@ -47,7 +48,7 @@ export function articleFor(item) {
     by: `文・${m.name}編集部`,
     page: web ? '' : a.page,
     headline: item.title, mag: item.mag, issue: item.issue, emoji: item.emoji,
-    magInfo: m, format: item.format, date: item.date,
+    map, magInfo: m, format: item.format, date: item.date,
     url: web ? `https://${m.domain}/articles/${item.id}` : '',
     quote: quoteOf(a.p[0]),
   };

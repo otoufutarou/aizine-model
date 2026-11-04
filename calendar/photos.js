@@ -37,6 +37,6 @@ export const PHOTOS = {
 const FALLBACK = { spot: 'h1', event: 'h1', gift: 'g01', goods: 'b01', trip: 't01', date: 'd01' };
 
 export function photoUrl(item, n = 0, w = 800, h = 520) {
-  const ids = PHOTOS[item.id] || PHOTOS[FALLBACK[item.kind]] || PHOTOS.h1;
+  const ids = PHOTOS[item.id] || PHOTOS[item.ph] || PHOTOS[FALLBACK[item.kind]] || PHOTOS.h1;
   return `https://images.unsplash.com/photo-${ids[n % ids.length]}?w=${w}&h=${h}&fit=crop&crop=entropy&q=72&auto=format`;
 }

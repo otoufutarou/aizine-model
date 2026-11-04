@@ -2,7 +2,7 @@ import { ARCHIVE, ADS } from './archive.js';
 import { articleFor } from './articles.js';
 import { MAGS, FORMAT_NAME } from './magazines.js';
 import { photoUrl } from './photos.js';
-import { outingDeck, prepDeck, dayTimeline, findGaps, categoryOf, dateKey, parseKey, addDays, toHHMM, toMin } from './engine.js';
+import { outingDeck, prepDeck, dayTimeline, findGaps, categoryOf, calOf, inScope, dateKey, parseKey, addDays, toHHMM, toMin } from './engine.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -18,29 +18,32 @@ const srcChip = (i) => `<span class="srcchip f-${MAGS[i.magId].font}" style="${m
 const today = new Date(new Date().setHours(0, 0, 0, 0));
 const DOW = ['日', '月', '火', '水', '木', '金', '土'];
 const fmtDate = (k) => { const d = parseKey(k); return `${d.getMonth() + 1}/${d.getDate()}（${DOW[d.getDay()]}）`; };
-const CAT_NAMES = { work: '仕事', party: '会食・パーティ', beach: '海・アウトドア', date: 'デート', beauty: '美容', trip: '旅行', lunch: 'ランチ', other: 'その他' };
+const CAT_NAMES = { work: '仕事', party: '会食・パーティ', beach: '海・アウトドア', date: 'デート', beauty: '美容', trip: '旅行', lunch: 'ランチ', sport: '運動', shop: '買い物', family: '友人・家族', other: 'その他' };
 const TYPE_NAMES = { gap: '空き時間', event: 'イベント', prep: '予定の準備', far: '2か月先', dayplan: '一日プラン', ad: 'PR' };
 
 // デモ用の架空の予定（今日からの相対日付）
 function demoEvents() {
-  const e = (off, title, start, end) => ({ id: uid(), date: dateKey(addDays(today, off)), title, start, end });
+  const e = (off, title, start, end, cal = 'life') => ({ id: uid(), date: dateKey(addDays(today, off)), title, start, end, cal });
   return [
-    e(0, '朝ミーティング', '10:00', '11:00'), e(0, '企画の打ち合わせ', '14:00', '15:30'), e(0, '取引先と会食', '19:00', '21:00'),
+    e(0, '朝ミーティング', '10:00', '11:00', 'work'), e(0, '企画の打ち合わせ', '14:00', '15:30', 'work'), e(0, '取引先と会食', '19:00', '21:00', 'work'),
     e(1, '海でBBQ', '11:00', '16:00'),
+    e(2, 'ジム', '19:00', '20:30'), e(2, '定例会議', '10:00', '11:00', 'work'),
     e(3, '友だちとランチ', '12:00', '13:30'),
     e(4, 'デート', '18:30', '21:00'),
+    e(5, '渋谷で買い物', '13:00', '16:00'),
     e(6, '友人の誕生日会', '19:00', '22:00'),
-    e(8, '美容院', '11:00', '12:30'), e(8, '定例会議', '15:00', '16:00'),
+    e(8, '美容院', '11:00', '12:30'), e(8, '定例会議', '15:00', '16:00', 'work'),
+    e(9, '母とランチ', '12:00', '13:30'),
   ];
 }
 
 const state = {
   tab: ['suggest', 'saved'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'calendar', view: 'day', cursor: dateKey(today), monthPick: dateKey(today),
-  events: load('maglife.events', null) || demoEvents(),
-  saved: load('maglife.saved', []),
-  mode: 'outing', variant: 0, decks: {},
+  events: load('editime.events', null) || load('maglife.events', null) || demoEvents(),
+  saved: load('editime.saved', load('maglife.saved', [])),
+  mode: 'outing', variant: 0, decks: {}, scope: load('editime.scope', 'all'),
 };
-const persist = () => { store('maglife.events', state.events); store('maglife.saved', state.saved); };
+const persist = () => { store('editime.events', state.events); store('editime.saved', state.saved); store('editime.scope', state.scope); };
 persist();
 
 const view = $('#view');
@@ -98,7 +101,7 @@ function addableEvent(card, item) {
   let len = item.minutes || 60;
   if (card.gap) len = Math.min(len, card.gap.end - card.gap.start);
   const end = toHHMM(toMin(start) + len);
-  return { id: uid(), date: card.date, title: item.title.replace(/^【.*?】/, '').slice(0, 20), start, end };
+  return { id: uid(), date: card.date, title: item.title.replace(/^【.*?】/, '').slice(0, 20), start, end, cal: state.scope === 'work' ? 'work' : 'life' };
 }
 
 function openArticle(item, card) {
@@ -139,20 +142,30 @@ function toggleSave(card) {
   persist();
 }
 
-function openAddForm() {
-  openSheet(`<h2 style="margin:6px 0 14px;font-family:var(--serif);font-size:24px">予定を追加</h2><form class="form" id="f">
-    <input name="title" placeholder="予定（例：会食、海、デート）" required maxlength="40" />
-    <input type="date" name="date" value="${state.cursor}" required />
-    <div class="r"><input type="time" name="start" /><input type="time" name="end" /></div>
-    <button class="btn press" type="submit">追加する</button></form>`, (s) => {
-    $('#f', s).onsubmit = (ev) => {
-      ev.preventDefault();
-      const f = new FormData(ev.target);
-      state.events.push({ id: uid(), title: String(f.get('title')).trim(), date: f.get('date'), start: f.get('start') || '', end: f.get('end') || '' });
-      state.cursor = f.get('date'); touched(); closeSheet(); setTimeout(render, 220);
+// 予定の追加・編集（ev があれば編集）
+function openEventForm(ev) {
+  const cal = ev ? calOf(ev) : state.scope === 'all' ? 'life' : state.scope;
+  openSheet(`<h2 style="margin:6px 0 14px;font-family:var(--serif);font-size:24px">${ev ? '予定を編集' : '予定を追加'}</h2><form class="form" id="f">
+    <input name="title" placeholder="予定（例：会食、海、デート、ジム）" required maxlength="40" value="${ev ? esc(ev.title) : ''}" />
+    <input type="date" name="date" value="${ev ? ev.date : state.cursor}" required />
+    <div class="r"><input type="time" name="start" value="${ev?.start || ''}" /><input type="time" name="end" value="${ev?.end || ''}" /></div>
+    <label>カレンダー</label>
+    <div class="calpick"><label><input type="radio" name="cal" value="life" ${cal === 'life' ? 'checked' : ''}><span>LIFE</span></label><label><input type="radio" name="cal" value="work" ${cal === 'work' ? 'checked' : ''}><span>WORK</span></label></div>
+    <button class="btn press" type="submit">${ev ? '保存する' : '追加する'}</button>
+    ${ev ? '<button class="btn danger press" type="button" id="del">この予定を削除</button>' : ''}</form>`, (s) => {
+    $('#f', s).onsubmit = (e) => {
+      e.preventDefault();
+      const f = new FormData(e.target);
+      const start = f.get('start') || '', end = f.get('end') || '';
+      if (start && end && end <= start) { toast('終了は開始より後にしてください'); return; }
+      const data = { title: String(f.get('title')).trim(), date: f.get('date'), start, end, cal: f.get('cal') };
+      if (ev) Object.assign(ev, data); else state.events.push({ id: uid(), ...data });
+      state.cursor = data.date; touched(); closeSheet(); toast(ev ? '予定を更新しました' : '予定を追加しました'); setTimeout(render, 220);
     };
-  });
+    if (ev) $('#del', s).onclick = () => { state.events = state.events.filter((x) => x.id !== ev.id); touched(); closeSheet(); toast('削除しました'); setTimeout(render, 220); };
+  }, { label: ev ? 'Edit' : 'New', sub: 'EDITIME', c: cal === 'work' ? '#3d6bff' : '#ff4d8d', font: 'serif' });
 }
+const openAddForm = () => openEventForm();
 
 // ---------- 提案カード部品 ----------
 function sugCard(c, extra = '') {
@@ -162,7 +175,8 @@ function sugCard(c, extra = '') {
 }
 
 // ---------- カレンダー ----------
-const evOf = (k) => state.events.filter((e) => e.date === k).sort((a, b) => (a.start || '').localeCompare(b.start || ''));
+const evOf = (k) => state.events.filter((e) => e.date === k && inScope(e, state.scope)).sort((a, b) => (a.start || '').localeCompare(b.start || ''));
+const calChip = (e) => (state.scope === 'all' ? `<span class="calchip">${calOf(e).toUpperCase()}</span>` : '');
 const timeLabel = (e) => (e.start ? `${e.start}${e.end ? '–' + e.end : ''}` : '終日');
 
 function renderCalendar() {
@@ -186,7 +200,8 @@ function renderCalendar() {
   $('#next').onclick = () => { state.cursor = dateKey(next()); render(); };
   $('#today').onclick = () => { state.cursor = dateKey(today); render(); };
   $('#fab').onclick = openAddForm;
-  view.querySelectorAll('[data-del]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); state.events = state.events.filter((x) => x.id !== b.dataset.del); touched(); render(); }));
+  view.querySelectorAll('[data-del]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); state.events = state.events.filter((x) => x.id !== b.dataset.del); touched(); toast('削除しました'); render(); }));
+  view.querySelectorAll('[data-edit]').forEach((el) => (el.onclick = (e) => { if (e.target.closest('[data-del]')) return; const ev = state.events.find((x) => x.id === el.dataset.edit); if (ev) openEventForm(ev); }));
   view.querySelectorAll('[data-goday]').forEach((el) => (el.onclick = () => { state.cursor = el.dataset.goday; state.view = 'day'; render(); }));
   view.querySelectorAll('[data-pick]').forEach((el) => (el.onclick = () => { state.cursor = el.dataset.pick; render(); }));
   bindCards(view);
@@ -199,12 +214,12 @@ function bindCards(root) {
 const reg = (c) => { cardIndex.set(c.id, c); return c; };
 
 function dayView() {
-  const { rows, ad } = dayTimeline(parseKey(state.cursor), state.events, ARCHIVE, ADS, state.variant);
+  const { rows, ad } = dayTimeline(parseKey(state.cursor), state.events, ARCHIVE, ADS, state.variant, state.scope);
   const html = rows.map((r) => {
     if (r.type === 'event') {
       const e = r.e;
       return `<div class="row"><div class="time">${e.start || '終日'}</div><div>
-        <div class="evbox c-${categoryOf(e.title)}"><div>${esc(e.title)}<small>${timeLabel(e)}</small></div><button data-del="${e.id}" aria-label="削除">✕</button></div>
+        <div class="evbox c-${categoryOf(e.title)} press" data-edit="${e.id}"><div>${esc(e.title)}${calChip(e)}<small>${timeLabel(e)}</small></div><div class="ed"><span class="pen">編集</span><button data-del="${e.id}" aria-label="削除">✕</button></div></div>
         ${r.prep.length ? `<div class="prephead c-${categoryOf(e.title)}">PREPARATION ・ もっと良くする準備</div>` : ''}${r.prep.map((c) => sugCard(reg(c), 'in-event')).join('')}</div></div>`;
     }
     if (r.type === 'gap') return `<div class="row"><div class="time">${toHHMM(r.card.gap.start)}</div><div>${sugCard(reg(r.card))}</div></div>`;
@@ -212,7 +227,7 @@ function dayView() {
     return `<div class="row"><div class="time">終日</div><div><div class="sug-card t-dayplan press" data-card="${c.id}">${thumb(c.stops[0].item)}<div class="tx"><div class="lb">予定のない日</div><div class="ti">一日まるごとプランを提案</div><div class="src"><span class="srcchip" style="--mc:#f5a300;--mb:#fff3cf">全${c.stops.length}スポット</span></div></div><span class="go">›</span></div></div></div>`;
   }).join('');
   const adHtml = ad ? `<div class="sug-card t-ad" style="margin-top:6px"><div class="em ad">PR</div><div class="tx"><div class="lb">${esc(ad.ad.brand)}</div><div class="ti">${esc(ad.ad.title)}</div></div></div>` : '';
-  return `<div class="tl">${html || '<div class="empty">予定はありません</div>'}${adHtml}</div>
+  return `<div class="tl">${html || `<div class="empty">${state.scope === 'work' ? 'WORKの予定はありません' : '予定はありません'}</div>`}${adHtml}</div>
     <div class="legend">${Object.entries(CAT_NAMES).map(([k, v]) => `<span class="c-${k}"><i></i>${v}</span>`).join('')}</div>`;
 }
 
@@ -222,7 +237,7 @@ function weekView() {
   let out = '';
   for (let i = 0; i < 7; i++) {
     const d = addDays(start, i), k = dateKey(d);
-    const { rows } = dayTimeline(d, state.events, ARCHIVE, ADS, state.variant);
+    const { rows } = dayTimeline(d, state.events, ARCHIVE, ADS, state.variant, state.scope);
     const evs = rows.filter((r) => r.type === 'event').map((r) => `<span class="pill c-${categoryOf(r.e.title)}"><small>${r.e.start || ''}</small>${esc(r.e.title)}</span>`).join('');
     const sugs = rows.filter((r) => r.type === 'gap').slice(0, 2).map((r) => `<span class="pill sug t-gap"><small>${toHHMM(r.card.gap.start)}</small>${esc(r.card.item.title)}</span>`).join('');
     const plan = rows.find((r) => r.type === 'dayplan') ? `<span class="pill sug t-dayplan">一日まるごとプランあり</span>` : '';
@@ -245,7 +260,7 @@ function monthView() {
   const evs = evOf(state.cursor);
   return `<div class="grid">${cells}</div>
     <div class="dayhead">${fmtDate(state.cursor)}</div>
-    ${evs.map((e) => `<div class="evbox c-${categoryOf(e.title)}" style="margin-bottom:6px"><div>${esc(e.title)}<small>${timeLabel(e)}</small></div></div>`).join('') || '<div class="empty" style="padding:10px">予定はありません</div>'}
+    ${evs.map((e) => `<div class="evbox c-${categoryOf(e.title)} press" data-edit="${e.id}" style="margin-bottom:6px"><div>${esc(e.title)}${calChip(e)}<small>${timeLabel(e)}</small></div><div class="ed"><span class="pen">編集</span></div></div>`).join('') || '<div class="empty" style="padding:10px">予定はありません</div>'}
     <div style="text-align:center;margin-top:10px"><button class="btn press" data-goday="${state.cursor}">この日の提案を見る ›</button></div>`;
 }
 
@@ -295,7 +310,7 @@ function openMag(id) {
 
 function renderSuggest() {
   const build = state.mode === 'outing' ? outingDeck : prepDeck;
-  if (!state.decks[state.mode]) state.decks[state.mode] = build({ events: state.events, today, archive: ARCHIVE, ads: ADS, variant: state.variant });
+  if (!state.decks[state.mode]) state.decks[state.mode] = build({ events: state.events, today, archive: ARCHIVE, ads: ADS, variant: state.variant, scope: state.scope });
   const deck = state.decks[state.mode];
   const [top, next] = deck;
   const seg = `<div class="seg"><button data-m="outing" class="${state.mode === 'outing' ? 'on' : ''}">おでかけ提案</button><button data-m="prep" class="${state.mode === 'prep' ? 'on' : ''}">予定をもっと良く</button></div>`;
@@ -358,7 +373,13 @@ function renderSaved() {
   $('#reset').onclick = () => { state.events = demoEvents(); state.saved = []; touched(); toast('デモの予定に戻しました'); render(); };
 }
 
+function renderScope() {
+  const el = $('#scope');
+  el.innerHTML = [['life', 'LIFE'], ['work', 'WORK'], ['all', 'BOTH']].map(([k, l]) => `<button data-s="${k}" class="${state.scope === k ? 'on' : ''}">${l}</button>`).join('');
+  el.querySelectorAll('button').forEach((b) => (b.onclick = () => { state.scope = b.dataset.s; touched(); render(); }));
+}
 function render() {
+  renderScope();
   document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === state.tab));
   view.scrollTop = 0;
   if (state.tab === 'calendar') renderCalendar(); else if (state.tab === 'suggest') renderSuggest(); else renderSaved();

@@ -1,10 +1,11 @@
 // 雑誌アーカイブのサンプルデータ（デモ用の架空エントリ。実運用では雑誌社のアーカイブDBに差し替える）。
 // slot: morning / lunch / afternoon / evening / night
 import { MAGS, ASSIGN } from './magazines.js';
+import { EXTRA_ITEMS, EXTRA_ASSIGN } from './catalog.js';
 
 const RAW = [
   { id: 'a01', mag: 'BRUTUS', issue: '喫茶店特集', kind: 'spot', slot: 'morning', tags: ['cafe', 'solo'], emoji: '☕', title: '朝8時から開く純喫茶で、モーニングを', body: '昭和のままの窓際席とたまごサンド。本を一冊持っていきたい静けさ。', area: '神保町', minutes: 60 },
-  { id: 'a02', mag: 'BRUTUS', issue: '本屋特集', kind: 'spot', slot: 'afternoon', tags: ['book', 'solo'], emoji: '📚', title: '店主の選書が光る小さな本屋へ', body: '一冊だけ買って帰る。装丁の話ができる店主がいる。', area: '下北沢', minutes: 60 },
+  { id: 'a02', mag: 'BRUTUS', issue: '本屋特集', kind: 'spot', slot: 'afternoon', tags: ['book', 'solo', 'shop'], emoji: '📚', title: '店主の選書が光る小さな本屋へ', body: '一冊だけ買って帰る。装丁の話ができる店主がいる。', area: '下北沢', minutes: 60 },
   { id: 'a03', mag: 'POPEYE', issue: 'シティボーイ特集', kind: 'spot', slot: 'afternoon', tags: ['shop', 'fashion'], emoji: '🛍️', title: '古着とヴィンテージ雑貨を巡る2時間', body: '一点ものを探して歩く。履き慣れたスニーカーで。', area: '高円寺', minutes: 120 },
   { id: 'a04', mag: 'POPEYE', issue: '公園特集', kind: 'spot', slot: 'lunch', tags: ['park', 'solo', 'date'], emoji: '🌳', title: '公園ベンチでパンのランチ', body: '近所のベーカリーで買って、木陰で食べる。', area: '代々木公園', minutes: 60 },
   { id: 'a05', mag: 'VOCE', issue: 'ご褒美ケア特集', kind: 'spot', slot: 'afternoon', tags: ['beauty', 'solo'], emoji: '💆', title: '予定の合間に、60分のヘッドスパ', body: '頭皮をほぐすと顔まで明るくなる。夜の予定の前に。', area: '表参道', minutes: 60 },
@@ -13,7 +14,7 @@ const RAW = [
   { id: 'a08', mag: 'dancyu', issue: '町中華特集', kind: 'spot', slot: 'lunch', tags: ['food', 'solo'], emoji: '🍜', title: '昼だけの中華そばと餃子', body: '午前11時の開店直後が空いている。', area: '荻窪', minutes: 60 },
   { id: 'a09', mag: 'dancyu', issue: '東京の夜ごはん', kind: 'spot', slot: 'evening', tags: ['food', 'date'], emoji: '🍷', title: 'カウンター8席のビストロで一杯', body: '一人でも二人でも居心地がいい。ワインはグラスで。', area: '恵比寿', minutes: 90 },
   { id: 'a10', mag: 'BRUTUS', issue: '映画館特集', kind: 'spot', slot: 'evening', tags: ['movie', 'date', 'solo'], emoji: '🎬', title: '名画座のレイトショー', body: '二本立てのうち一本だけ観て帰るのも贅沢。', area: '池袋', minutes: 120 },
-  { id: 'a11', mag: 'POPEYE', issue: '銭湯特集', kind: 'spot', slot: 'night', tags: ['relax', 'solo'], emoji: '♨️', title: '一日の終わりに銭湯とコーヒー牛乳', body: 'サウナ後の外気浴まで含めて90分。', area: '蒲田', minutes: 90 },
+  { id: 'a11', mag: 'POPEYE', issue: '銭湯特集', kind: 'spot', slot: 'night', tags: ['relax', 'solo', 'sport'], emoji: '♨️', title: '一日の終わりに銭湯とコーヒー牛乳', body: 'サウナ後の外気浴まで含めて90分。', area: '蒲田', minutes: 90 },
   { id: 'a12', mag: 'BRUTUS', issue: '美術館特集', kind: 'spot', slot: 'afternoon', tags: ['art', 'date', 'solo'], emoji: '🖼️', title: '小さな美術館で一点だけじっくり観る', body: '常設の一点に絞ると、帰り道まで余韻が残る。', area: '清澄白河', minutes: 90 },
 
   { id: 'e01', mag: 'BRUTUS', issue: '今月のアート', kind: 'spot', slot: 'afternoon', tags: ['event', 'art', 'date'], emoji: '🎨', title: '【開催中】現代の器展 ― 手で使う、日々のうつわ', body: '作家20人の新作を手に取れる展示即売。会期は今月末まで。', area: '代官山', minutes: 60, when: '今月末まで開催' },
@@ -39,8 +40,8 @@ const RAW = [
 ];
 
 // 元データの mag（旧表記）は無視し、架空誌・掲載形式・日付で上書きする
-export const ARCHIVE = RAW.map((it) => {
-  const [magId, format, date] = ASSIGN[it.id];
+export const ARCHIVE = [...RAW, ...EXTRA_ITEMS].map((it) => {
+  const [magId, format, date] = ASSIGN[it.id] || EXTRA_ASSIGN[it.id];
   return { ...it, mag: MAGS[magId].name, magId, format, date };
 });
 
