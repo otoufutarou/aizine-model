@@ -120,7 +120,7 @@ function burst(el) {
 }
 function closeSheet() {
   sheet.classList.add('closing');
-  setTimeout(() => { sheet.hidden = true; sheet.classList.remove('closing'); sheet.innerHTML = ''; }, 330);
+  setTimeout(() => { sheet.hidden = true; sheet.classList.remove('closing'); sheet.innerHTML = ''; }, 620);
 }
 
 const SLOT_START = { morning: '09:30', lunch: '12:00', afternoon: '15:00', evening: '19:00', night: '20:00' };
@@ -156,7 +156,7 @@ function openCover(item) {
   el.className = 'opening'; el.style.setProperty('--mc', m.c);
   el.innerHTML = `<div class="page"><div class="lg f-${m.font}">${logo(item.magId)}</div><small>${esc(m.kana)}</small></div>`;
   $('.phone').appendChild(el);
-  setTimeout(() => el.remove(), 1150);
+  setTimeout(() => el.remove(), 850);
 }
 const ribbon = (saved) => `<div class="rbw"><button class="ribbon ${saved ? 'in' : ''}" id="rb" aria-label="しおり"></button></div>`;
 const svLabel = (saved) => `${bm(saved)} ${saved ? 'しおりを外す' : 'しおりを挟む'}`;
