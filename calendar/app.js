@@ -1,6 +1,7 @@
 import { ARCHIVE, ADS } from './archive.js';
 import { articleFor } from './articles.js';
 import { MAGS, FORMAT_NAME } from './magazines.js';
+import { logo, logoTab } from './logos.js';
 import { photoUrl } from './photos.js';
 import { outingDeck, prepDeck, prepCards, gapCard, DAY_START, dayTimeline, findGaps, categoryOf, calOf, inScope, dateKey, parseKey, addDays, toHHMM, toMin } from './engine.js';
 
@@ -13,6 +14,7 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 const thumb = (i) => `<div class="em"><img class="sq" src="${photoUrl(i, 0, 240, 240)}" alt="" loading="lazy" draggable="false" onerror="this.remove()"></div>`;
 const hero = (i, n = 0) => `<div class="hero"><img src="${photoUrl(i, n, 900, 600)}" alt="" loading="lazy" draggable="false" onerror="this.remove()"></div>`;
 const magStyle = (i) => `--mc:${MAGS[i.magId].c};--mb:${MAGS[i.magId].bg}`;
+const mtag = (i) => logoTab(i.magId, MAGS[i.magId].c);
 const srcChip = (i) => `<span class="srcchip f-${MAGS[i.magId].font}" style="${magStyle(i)}"><b>${esc(i.mag)}</b> ${FORMAT_NAME[i.format]}より引用</span>`;
 
 const today = new Date(new Date().setHours(0, 0, 0, 0));
@@ -118,7 +120,7 @@ function burst(el) {
 }
 function closeSheet() {
   sheet.classList.add('closing');
-  setTimeout(() => { sheet.hidden = true; sheet.classList.remove('closing'); sheet.innerHTML = ''; }, 230);
+  setTimeout(() => { sheet.hidden = true; sheet.classList.remove('closing'); sheet.innerHTML = ''; }, 330);
 }
 
 const SLOT_START = { morning: '09:30', lunch: '12:00', afternoon: '15:00', evening: '19:00', night: '20:00' };
@@ -147,12 +149,25 @@ function addableEvent(card, item) {
   return { id: uid(), date: card.date, title: cleanTitle(item), start, end, cal: state.scope === 'work' ? 'work' : 'life' };
 }
 
+// 雑誌を開く演出：白地の中央にロゴ→表紙がめくれる
+function openCover(item) {
+  const m = MAGS[item.magId];
+  const el = document.createElement('div');
+  el.className = 'opening'; el.style.setProperty('--mc', m.c);
+  el.innerHTML = `<div class="page"><div class="lg f-${m.font}">${logo(item.magId)}</div><small>${esc(m.kana)}</small></div>`;
+  $('.phone').appendChild(el);
+  setTimeout(() => el.remove(), 1150);
+}
+const ribbon = (saved) => `<div class="rbw"><button class="ribbon ${saved ? 'in' : ''}" id="rb" aria-label="しおり"></button></div>`;
+const svLabel = (saved) => `${bm(saved)} ${saved ? 'しおりを外す' : 'しおりを挟む'}`;
+
 function openArticle(item, card) {
+  openCover(item);
   const a = articleFor(item);
   const ev = addableEvent(card, item);
   const t = card?.type || 'gap';
   openSheet(`<div class="art t-${t}" style="--mc:${a.magInfo.c};--mb:${a.magInfo.bg}">
-    <div class="mast f-${a.magInfo.font}"><b>${esc(a.mag)}</b><small>${a.format === 'web' ? 'WEB記事' : '誌面'}・${esc(a.date)}${a.page ? ' ' + esc(a.page) : ''}</small></div>
+    <div class="mast f-${a.magInfo.font}"><b>${logo(a.magId || item.magId)}</b><small>${a.format === 'web' ? 'WEB記事' : '誌面'}・${esc(a.date)}${a.page ? ' ' + esc(a.page) : ''}</small></div>
     <div class="quote">${esc(a.mag)} の${a.format === 'web' ? 'WEB記事' : '誌面'}より引用<q>${esc(a.quote)}</q></div>
     ${a.format === 'web' ? `<div class="urlbar">https:// ${esc(a.url.replace('https://', ''))}</div>` : ''}
     <div class="photo ${a.format}"><img src="${photoUrl(item, 0, 900, 600)}" alt="" onerror="this.remove()"><i>${esc(a.issue)}</i></div>
@@ -160,9 +175,10 @@ function openArticle(item, card) {
     <h2>${esc(a.headline)}</h2><div class="by">${esc(a.by)}（架空の記事）</div>
     ${a.p.map((p) => `<p>${esc(p)}</p>`).join('')}
     ${a.info.length ? `<dl>${a.info.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
-    <div class="acts"><button class="btn ghost press" id="sv">${bm(isSaved(card?.id))} ${isSaved(card?.id) ? '保存済み' : '保存'}</button>
+    <div class="acts"><button class="btn ghost press" id="sv">${svLabel(isSaved(card?.id))}</button>
       ${ev ? `<button class="btn press" id="ad">${ev.start}–${ev.end} に予定追加</button>` : card?.type === 'prep' ? '<button class="btn ghost press" disabled>前後に空きがありません</button>' : ''}</div></div>`, (s) => {
-    $('#sv', s).onclick = (e) => { if (card) toggleSave(card); e.currentTarget.innerHTML = `${bm(isSaved(card?.id))} ${isSaved(card?.id) ? '保存済み' : '保存'}`; e.currentTarget.classList.add('heart-pop'); if (isSaved(card?.id)) burst(e.currentTarget); };
+    $('#sv', s).onclick = (e) => { if (card) toggleSave(card); e.currentTarget.innerHTML = svLabel(isSaved(card?.id)); $('#rb', s)?.classList.toggle('in', isSaved(card?.id)); e.currentTarget.classList.add('heart-pop'); if (isSaved(card?.id)) burst(e.currentTarget); };
+    if (card && card.type !== 'ad') { s.querySelector('.wrap').insertAdjacentHTML('beforeend', ribbon(isSaved(card.id))); $('#rb', s).onclick = () => $('#sv', s).click(); }
     if (ev) $('#ad', s).onclick = () => { state.events.push(ev); touched(); closeSheet(); toast(`${fmtDate(ev.date)} ${ev.start} に追加しました`); setTimeout(render, 220); };
   }, { label: a.mag, sub: `${a.format === 'web' ? 'WEB' : 'PRINT'} ${a.date}`, c: a.magInfo.c, font: a.magInfo.font });
 }
@@ -234,7 +250,7 @@ const openAddForm = () => openEventForm();
 // ---------- 提案カード部品 ----------
 function sugCard(c, extra = '') {
   const i = c.item;
-  return `<div class="sug-card t-${c.type} ${extra} press" data-card="${c.id}">${thumb(i)}
+  return `<div class="sug-card t-${c.type} ${extra} press" data-card="${c.id}" style="${magStyle(i)}">${mtag(i)}${thumb(i)}
     <div class="tx"><div class="lb">${esc(c.label)}</div><div class="ti">${esc(i.title)}</div><div class="src">${srcChip(i)}</div></div><span class="go">›</span></div>`;
 }
 
@@ -302,7 +318,7 @@ function dayView() {
     if (r.type === 'gap') {
       const c = reg(r.card), g = c.gap, i = c.item;
       const h = Math.min(g.end - g.start, 150) / 60 * HH - 4;
-      return `<div class="gsug t-gap press ${h > 90 ? 'tall' : ''}" data-card="${c.id}" style="top:${y(g.start)}px;height:${h}px">${thumb(i)}<div class="tx"><div class="lb">${toHHMM(g.start)}–${toHHMM(g.end)}</div><div class="ti">${esc(i.title)}</div></div></div>`;
+      return `<div class="gsug t-gap press ${h > 90 ? 'tall' : ''}" data-card="${c.id}" style="${magStyle(i)};top:${y(g.start)}px;height:${h}px">${mtag(i)}${thumb(i)}<div class="tx"><div class="lb">${toHHMM(g.start)}–${toHHMM(g.end)}</div><div class="ti">${esc(i.title)}</div></div></div>`;
     }
     const c = reg(r.card);
     return `<div class="gsug t-dayplan tall press" data-card="${c.id}" style="top:${y(DAY_START)}px;height:150px">${thumb(c.stops[0].item)}<div class="tx"><div class="lb">予定のない日</div><div class="ti">一日まるごとプラン（全${c.stops.length}スポット）</div></div></div>`;
@@ -362,7 +378,7 @@ function cardBody(c) {
   }
   const i = c.item;
   const art = articleFor(i);
-  return `${hero(i)}<span class="badge">${TYPE_NAMES[c.type]}</span>
+  return `${mtag(i)}${hero(i)}<span class="badge">${TYPE_NAMES[c.type]}</span>
     <h3>${esc(i.title)}</h3><p>${esc(i.body)}</p><blockquote class="qt" style="${magStyle(i)}">“${esc(art.quote)}”${srcChip(i)}</blockquote><p class="reason">${esc(c.label)}｜${esc(c.reason)}</p>
     <div class="more">${esc(i.mag)} の記事を読む</div>`;
 }
@@ -383,9 +399,10 @@ function renderTicker() {
 
 function openMag(id) {
   const m = MAGS[id];
+  openCover({ magId: id });
   const items = ARCHIVE.filter((x) => x.magId === id);
   openSheet(`<div class="art" style="--mc:${m.c};--mb:${m.bg}">
-    <div class="mast f-${m.font}"><b>${esc(m.name)}</b><small>${esc(m.genre)}</small></div>
+    <div class="mast f-${m.font}"><b>${logo(id)}</b><small>${esc(m.genre)}</small></div>
     <div class="photo print"><img src="${photoUrl(items[0], 1, 900, 600)}" alt="" onerror="this.remove()"><i>${esc(m.tag)}</i></div>
     <div class="by">${esc(m.kana)}（架空の雑誌）｜収録 ${items.length} 本</div>
     ${items.map((x) => `<div class="sug-card t-gap press" data-it="${x.id}" style="margin-top:8px">${thumb(x)}<div class="tx"><div class="ti">${esc(x.title)}</div><div class="src">${srcChip(x)}</div></div><span class="go">›</span></div>`).join('')}</div>`, (s) => {
