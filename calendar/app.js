@@ -69,7 +69,7 @@ const state = {
   tab: ['suggest', 'saved'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'calendar', view: 'day', cursor: dateKey(today), monthPick: dateKey(today),
   events: load('editime.events2', null) || demoEvents(),
   saved: load('editime.saved', load('maglife.saved', [])),
-  mode: 'outing', variant: 0, decks: {}, scope: load('editime.scope', 'all'), ai: load('editime.ai', true),
+  mode: 'outing', variant: 0, decks: {}, scope: 'all', ai: load('editime.ai', true),
 };
 const persist = () => { store('editime.events2', state.events); store('editime.saved', state.saved); store('editime.scope', state.scope); store('editime.ai', state.ai); };
 persist();
@@ -482,6 +482,7 @@ function renderAi() {
 }
 function renderScope() {
   const el = $('#scope');
+  if (!el) return;
   const on = { life: state.scope !== 'work', work: state.scope !== 'life' };
   el.innerHTML = [['life', 'LIFE'], ['work', 'WORK']].map(([k, l]) => `<button data-s="${k}" aria-pressed="${on[k]}" class="${on[k] ? 'on' : ''}">${l}</button>`).join('');
   el.querySelectorAll('button').forEach((b) => (b.onclick = () => {
