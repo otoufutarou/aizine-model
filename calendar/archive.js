@@ -51,4 +51,5 @@ export const ADS = [
   { id: 'ad2', brand: 'SUNNY Optical', emoji: '🕶️', title: '海のための偏光サングラス', body: '雑誌掲載モデル、期間限定10%OFF。', cta: 'ショップへ', tags: ['beach', 'trip', 'sea'] },
   { id: 'ad3', brand: 'Hotel Nagomi', emoji: '🛎️', title: '平日限定、記念日プラン', body: 'アフタヌーンティー付き宿泊プラン。', cta: '空室を見る', tags: ['date', 'trip', 'onsen'] },
   { id: 'ad4', brand: 'BEAUTY LAB', emoji: '💄', title: '会食前の10分メイク直し', body: '店頭カウンターで無料カウンセリング。', cta: '店舗を探す', tags: ['beauty', 'food', 'date'] },
+  { id: 'ad5', brand: 'ヘパリーゼ', emoji: '🍶', title: '飲み会の翌朝に、ヘパリーゼ', body: '会食・飲み会の前後のコンディションづくりに。', cta: '詳しく見る', match: /会食|飲み|接待|懇親/, tags: ['party'] },
 ];

@@ -210,10 +210,12 @@ function openEventDetail(ev, more = false) {
   const day = state.events.filter((x) => x.date === ev.date);
   const near = !state.ai || !ev.start || !ev.end ? [] : findGaps(day).filter((g) => g.end === toMin(ev.start) || g.start === toMin(ev.end));
   const used = new Set(cards.map((c) => c.item.id));
+  const evAd = cards.length ? ADS.find((a) => a.match && a.match.test(ev.title)) || null : null;
   const gapCards = near.map((g) => gapCard(parseKey(ev.date), g, ARCHIVE, state.variant + detailVariant, day.filter((x) => inScope(x, state.scope)), used, state.scope, day)).filter(Boolean);
   openSheet(`<div class="evhead c-${categoryOf(ev.title)}"><div class="evt">${esc(ev.title)}<span class="calchip">${cal.toUpperCase()}</span></div><div class="evm">${ev.date.replace(/-/g, '/')} ・ ${timeLabel(ev)}</div></div>
     <div class="prephead c-${categoryOf(ev.title)}" style="margin:14px 0 8px">${state.ai ? 'この予定への編集部からの提案' : 'AI提案はオフです'}</div>
     ${cards.length ? cards.map((c) => sugCard(reg(c))).join('') : `<div class="empty">${state.ai ? 'この予定に合う提案はまだありません。<small>タイトルを「会食」「デート」などに変えると提案が出ます。</small>' : '右上の AI をオンにすると提案が出ます。'}</div>`}
+    ${evAd ? `<div class="sug-card t-ad" style="margin-top:10px"><div class="em ad">PR</div><div class="tx"><div class="lb">${esc(evAd.brand)}</div><div class="ti">${esc(evAd.title)}</div><div class="src">${esc(evAd.body)}</div></div></div>` : ''}
     ${gapCards.length ? `<div class="prephead c-${categoryOf(ev.title)}" style="margin:14px 0 8px">前後の空き時間に、寄り道</div>${gapCards.map((c) => sugCard(reg(c))).join('')}` : ''}
     <div class="r" style="display:flex;gap:8px;margin-top:12px">${cards.length ? '<button class="btn press" id="again" style="flex:1">別の提案</button>' : ''}<button class="btn danger press" id="edit" style="flex:1">予定を編集</button></div>`, (sh) => {
     bindCards(sh);
